@@ -1,0 +1,81 @@
+{
+	"partitions" : [
+		{
+			"name" : "Top",
+			"pins" : [
+				{
+					"name" : "error",
+					"strict" : false
+				},
+				{
+					"name" : "correct",
+					"strict" : false
+				},
+				{
+					"name" : "enter_d",
+					"strict" : false
+				},
+				{
+					"name" : "state_regt[0]",
+					"strict" : false
+				},
+				{
+					"name" : "state_regt[1]",
+					"strict" : false
+				},
+				{
+					"name" : "switches[3]",
+					"strict" : false
+				},
+				{
+					"name" : "code[3]",
+					"strict" : false
+				},
+				{
+					"name" : "done",
+					"strict" : false
+				},
+				{
+					"name" : "switches[0]",
+					"strict" : false
+				},
+				{
+					"name" : "switches[1]",
+					"strict" : false
+				},
+				{
+					"name" : "switches[2]",
+					"strict" : false
+				},
+				{
+					"name" : "code[0]",
+					"strict" : false
+				},
+				{
+					"name" : "code[1]",
+					"strict" : false
+				},
+				{
+					"name" : "code[2]",
+					"strict" : false
+				},
+				{
+					"name" : "srst",
+					"strict" : false
+				},
+				{
+					"name" : "clk",
+					"strict" : false
+				},
+				{
+					"name" : "resetN",
+					"strict" : false
+				},
+				{
+					"name" : "enter_al",
+					"strict" : false
+				}
+			]
+		}
+	]
+}

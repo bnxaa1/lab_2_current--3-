@@ -1,0 +1,61 @@
+module access_Permissiom (input logic locked, key, enter, correct, error, timeOut, srst, rstN,
+									output logic resetN, Err_LED, Corr_LED, increment, timeOut); // reset of the timeout should be srst
+					
+					
+	wire input_cond;				
+	assign input_cond = {locked, key, enter};
+	typedef enum logic [2:0] {S0, S1, S2, S3, S4,S5} state_e;
+	state_e state_reg,state_next;
+	always_ff @(posedge clk, negedge resetN) begin
+        if(!resetN)
+            state_reg <= S0; // reset state to S0
+		  else if (srst)
+				state_reg <= S0;
+        else 
+            state_reg <= state_next; // update state to next_state on clock edge
+	end
+	 
+	always_comb begin
+		resetN = 'b0;
+		state_next = state_reg;
+		Err_LED = 'b0;
+		Corr_LED = 'b0;
+		increment = 'b0;
+		case(state) begin
+			S0: begin
+				resetN = 'b1;
+				if (input_cond==3b'001) begin
+					state_next = S1;
+					srst = 'b1;
+				end
+				else if (input_cond==3b'111)
+					state_next = S2;
+				else if (input_cond==3b'011)
+					state_next = S3;
+			end
+			S1: begin
+				if (correct)
+					state_next = S5;
+				else if (error) begin
+					state_next = S4;
+					increment = 'b1;
+				end
+				else if(timeOut)
+					state_next = S0;
+					
+			S2:
+				if (correct)
+					state_next = S5;
+				else if (error) begin
+					state_next = S4;
+					increment = 'b1;
+				end
+			//S3:
+			S4:
+				Err_LED = 'b1;
+		endcase
+	end
+				
+					
+			
+		

@@ -1,0 +1,10 @@
+module codeStorage (input logic enter_al/*active low*/, clk, resetN, done, wren, ctrRst,
+            input logic [3:0]  dataIn,
+				output logic [3:0]  dataOut);
+		logic [4:0] rdaddress, wraddress,rStartingAddress,wStartingAddress;
+		logic [3:0] ctr;
+		assign rdaddress = {1'b0,ctr}+ rStartingAddress;
+		assign wraddress = {1'b0,ctr}+ wStartingAdrress;
+		ram Ram_Mem(.clock(clk),.data(dataIn),.rdaddress(rdaddress),.wraddress(wraddress),.wren(wren),.q(dataOut));
+		counter c2(.clock(clk), .clr(ctrRst), .q(ctr));
+endmodule;

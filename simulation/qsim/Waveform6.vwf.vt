@@ -1,0 +1,153 @@
+// Copyright (C) 2025  Altera Corporation. All rights reserved.
+// Your use of Altera Corporation's design tools, logic functions 
+// and other software and tools, and any partner logic 
+// functions, and any output files from any of the foregoing 
+// (including device programming or simulation files), and any 
+// associated documentation or information are expressly subject 
+// to the terms and conditions of the Altera Program License 
+// Subscription Agreement, the Altera Quartus Prime License Agreement,
+// the Altera IP License Agreement, or other applicable license
+// agreement, including, without limitation, that your use is for
+// the sole purpose of programming logic devices manufactured by
+// Altera and sold by Altera or its authorized distributors.  Please
+// refer to the Altera Software License Subscription Agreements 
+// on the Quartus Prime software download page.
+
+// *****************************************************************************
+// This file contains a Verilog test bench with test vectors .The test vectors  
+// are exported from a vector file in the Quartus Waveform Editor and apply to  
+// the top level entity of the current Quartus project .The user can use this   
+// testbench to simulate his design using a third-party simulation tool .       
+// *****************************************************************************
+// Generated on "04/13/2026 13:08:03"
+                                                                                
+// Verilog Test Bench (with test vectors) for design :                          lock_validation
+// 
+// Simulation tool : 3rd Party
+// 
+
+`timescale 1 ps/ 1 ps
+module lock_validation_vlg_vec_tst();
+// constants                                           
+// general purpose registers
+reg clk;
+reg [3:0] code;
+reg done;
+reg enter_al;
+reg resetN;
+reg srst;
+reg [3:0] switches;
+// wires                                               
+wire correct;
+wire enter_d;
+wire error;
+wire [2:0] state_regt;
+
+// assign statements (if any)                          
+lock_validation i1 (
+// port map - connection between master ports and signals/registers   
+	.clk(clk),
+	.code(code),
+	.correct(correct),
+	.done(done),
+	.enter_al(enter_al),
+	.enter_d(enter_d),
+	.error(error),
+	.resetN(resetN),
+	.srst(srst),
+	.state_regt(state_regt),
+	.switches(switches)
+);
+initial 
+begin 
+#1000000 $finish;
+end 
+
+// clk
+always
+begin
+	clk = 1'b0;
+	clk = #5000 1'b1;
+	#5000;
+end 
+
+// enter_al
+initial
+begin
+	enter_al = 1'b0;
+	enter_al = #170000 1'b1;
+	enter_al = #160000 1'b0;
+	enter_al = #210000 1'b1;
+end 
+// code[ 3 ]
+initial
+begin
+	code[3] = 1'b0;
+	code[3] = #500000 1'b1;
+	code[3] = #60000 1'b0;
+end 
+// code[ 2 ]
+initial
+begin
+	code[2] = 1'b0;
+end 
+// code[ 1 ]
+initial
+begin
+	code[1] = 1'b0;
+	code[1] = #500000 1'b1;
+	code[1] = #60000 1'b0;
+end 
+// code[ 0 ]
+initial
+begin
+	code[0] = 1'b0;
+	code[0] = #150000 1'b1;
+	code[0] = #40000 1'b0;
+end 
+// switches[ 3 ]
+initial
+begin
+	switches[3] = 1'b0;
+	switches[3] = #500000 1'b1;
+	switches[3] = #60000 1'b0;
+end 
+// switches[ 2 ]
+initial
+begin
+	switches[2] = 1'b0;
+end 
+// switches[ 1 ]
+initial
+begin
+	switches[1] = 1'b0;
+	switches[1] = #500000 1'b1;
+	switches[1] = #60000 1'b0;
+end 
+// switches[ 0 ]
+initial
+begin
+	switches[0] = 1'b0;
+	switches[0] = #150000 1'b1;
+	switches[0] = #40000 1'b0;
+end 
+
+// resetN
+initial
+begin
+	resetN = 1'b1;
+end 
+
+// srst
+initial
+begin
+	srst = 1'b0;
+end 
+
+// done
+initial
+begin
+	done = 1'b0;
+end 
+endmodule
+

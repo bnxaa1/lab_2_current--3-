@@ -1,0 +1,93 @@
+module comb_lock(input logic [3:0] code_0, code_1, code_2, code_3, switches,
+                input logic enter_al/*active low*/, clk, resetN,
+                output logic error, correct);
+    //debounced one pulse signal
+    logic enter_d, done, st; //debounced one pulse enter signal, done counter signal, st to reset the counter
+    typedef enum logic [2:0] {S0, S1, S2, S3, S4} state_e; // typedef: creates a new type, enum: gives a name to a set of values, logic [1:0]: 2-bit logic vector
+    state_e state_reg, state_next; //state_e defines the possible values of state and next_state
+    
+    // Comb_lock validation
+    logic eq;
+    logic [3:0] code_int; // internal register to hold the code for comparison
+    typedef enum logic[3:0] {St0, St1, St2, St3, St4, St5, St6, St7, St8} state_check;
+    state_check state_reg1, state_next1;
+
+    always_ff @(posedge clk, negedge resetN) begin
+        if(!resetN) begin
+            state_reg <= S0; // reset state to S0
+            state_reg1 <= St0; // reset state to St0
+        end
+        else begin
+            state_reg <= state_next; // update state to next_state on clock edge
+            state_reg1 <= state_next1; // update state to next_state on clock edge
+        end
+    end
+
+    //debounced pulse generation
+    // State transition logic
+    always_comb begin: one_pulse_enter
+        state_next = state_reg; // default next state is the same as current state
+        case(state_reg)
+            S0: 
+            if(!enter_al)
+                    state_next= S1;
+            S1: if(enter_al && done)
+                    state_next = S0;
+                else if(!enter_al && done)
+                    state_next = S2;
+            S2: 
+                state_next = S3;
+            S3: if(enter_al)
+                    state_next= S4;
+            S4: if(done)
+                    state_next = S0;
+        endcase
+    end
+    assign enter_d = (state_reg == S2); // generate one pulse when the state is S2
+    assign st = (state_reg == S0) or (state_reg == S3); // reset the counter
+    
+    //lock validation
+    //
+    case(state_reg1)
+        St0: code_int = code_0; 
+        St1: code_int = code_1; 
+        St2: code_int = code_2; 
+        St3: code_int = code_3;
+        default: code_int = 4'b0000; // default case to avoid latches
+    endcase
+    assign eq = (code_int == switches); // compare the input code with the correct code
+
+    always_comb begin: Lock_validation
+        state_next1 = state_reg1; // default next state is the same as current state
+        case(state_reg1) // state_next1=state_reg1 prevents laches so no need for unique case
+            St0: if(enter_d && eq) 
+                    state_next1 = St1;
+                else if(enter_d && !eq)
+                    state_next1 = St5;
+            St1: if(enter_d && eq)
+                    state_next1 = St2;
+                else if(enter_d && !eq)
+                    state_next1 = St6;
+            St2: if(enter_d && eq)
+                    state_next1 = St3;
+                else if(enter_d && !eq)
+                    state_next1 = St7; 
+            St3: if(enter_d && eq)
+                    state_next1 = St4;
+                else if(enter_d && !eq)
+                    state_next1 = St8;
+            St4:
+                state_next1 = St0;
+            St5: if(enter_d)
+                    state_next1 = St6;
+            St6: if(enter_d)
+                    state_next1 = St7;
+            St7: if(enter_d)
+                    state_next1 = St8;
+            St8:
+                state_next1 = St0;
+        endcase
+    end
+    assign correct = (state_reg1 == St4); // output correct when the state is St4
+    assign error = (state_reg1 == St8); // output error when the state is St8
+endmodule

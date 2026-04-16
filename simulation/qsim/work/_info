@@ -1,0 +1,233 @@
+m255
+K4
+z2
+Z0 !s12c _opt1
+Z1 !s99 nomlopt
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+Z2 !s12c _opt
+R1
+Z3 !s12c _opt2
+R1
+R3
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+!s11f MIXED_VERSIONS
+R2
+R1
+R2
+R1
+R2
+R1
+R2
+R1
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z4 dC:/Users/mahaz/Desktop/lab_2/simulation/qsim
+T_opt
+!i145 1
+!i144 0
+!s110 1776028087
+V=U<aNn^5OXTa8?kln0R:;3
+04 17 4 work lab_2_vlg_vec_tst fast 0
+=1-401a582bfb7c-69dc09b6-242-8bec
+R1
+Z5 !s12f OEM100
+Z6 !s12b OEM100
+Z7 !s124 OEM10U2 
+Z8 !s135 nogc
+Z9 o-quiet -auto_acc_if_foreign -work work -L cyclonev_ver -L altera_ver -L altera_mf_ver -L 220model_ver -L sgate_ver -L altera_lnsim_ver +acc
+Z10 tCvgOpt 0 defaultOptions 1107585188
+n@_opt
+Z11 OL;O;2025.2;82
+R4
+T_opt1
+!i145 1
+!i144 0
+!s110 1776074890
+VTgKEW><NUnlgz2JDQ^<;z3
+04 27 4 work lock_validation_vlg_vec_tst fast 0
+=1-401a582bfb7c-69dcc088-364-9998
+R1
+R5
+R6
+R7
+R8
+R9
+R10
+n@_opt1
+R11
+T_opt2
+!i145 1
+!i144 0
+!s110 1775851748
+VEhiJRa4OQkohi9_]XF@6M1
+04 29 4 work access_permission_vlg_vec_tst fast 0
+=1-401a582bfb7c-69d958e2-3d2-7d18
+R1
+R5
+R6
+R7
+R8
+R9
+R10
+n@_opt2
+R11
+R4
+vaccess_permission
+Z12 2lab_2.vo
+!s110 1775851745
+!i10b 1
+!s100 FjA3<j0JPa72]zo5zEe<a3
+IidVTGca<mZ5OJKGNSSHKG3
+Z13 dC:/Users/mahaz/Desktop/trash/lab_2_current/simulation/qsim
+w1775851743
+Z14 8lab_2.vo
+Z15 Flab_2.vo
+!i122 24
+L0 32 764
+Z16 VDg1SIo80bB@j0V0VzS_@n1
+Z17 OL;L;2025.2;82
+r1
+!s85 0
+31
+Z18 !s108 1775851745.000000
+Z19 !s107 lab_2.vo|
+Z20 !s90 -work|work|lab_2.vo|
+!i113 0
+Z21 o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+Z22 tCvgOpt 0 defaultOptions 1085333592
+vaccess_permission_vlg_vec_tst
+2Waveform4.vwf.vt
+!s110 1775851746
+!i10b 1
+!s100 1Bm4<8P^SA60nU4<2KnTQ0
+Idg0PnCSLBB417ei:2HB;c1
+R13
+w1775851741
+8Waveform4.vwf.vt
+FWaveform4.vwf.vt
+!i122 25
+L0 30 95
+R16
+R17
+r1
+!s85 0
+31
+R18
+!s107 Waveform4.vwf.vt|
+!s90 -work|work|Waveform4.vwf.vt|
+!i113 0
+R21
+R22
+vlab_2
+R12
+Z23 !s110 1776028085
+!i10b 1
+!s100 A^?59ei06QjZXVkEVf;l<2
+IAaO?g5oTG<?<LVa=XPH:J0
+Z24 dC:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim
+w1776028084
+R14
+R15
+!i122 26
+L0 32 3850
+R16
+R17
+r1
+!s85 0
+31
+Z25 !s108 1776028085.000000
+R19
+R20
+!i113 0
+R21
+R22
+vlab_2_vlg_vec_tst
+2Waveform5.vwf.vt
+R23
+!i10b 1
+!s100 <b`hS?[`A3EI1C9HVec=K0
+ID`FYVKZ?C5<z^fP?o>4gQ2
+R24
+w1776028083
+8Waveform5.vwf.vt
+FWaveform5.vwf.vt
+!i122 27
+L0 30 86
+R16
+R17
+r1
+!s85 0
+31
+R25
+!s107 Waveform5.vwf.vt|
+!s90 -work|work|Waveform5.vwf.vt|
+!i113 0
+R21
+R22
+vlock_validation
+R12
+Z26 !s110 1776074887
+!i10b 1
+!s100 O=LmBQPWObc2i8SE0=k<:2
+I3WAm4ZMcmGbTL^T4T>D?S1
+R24
+w1776074885
+R14
+R15
+!i122 40
+L0 32 1319
+R16
+R17
+r1
+!s85 0
+31
+Z27 !s108 1776074887.000000
+R19
+R20
+!i113 0
+R21
+R22
+vlock_validation_vlg_vec_tst
+2Waveform6.vwf.vt
+R26
+!i10b 1
+!s100 4k7_8`0I?oX?JnfFl84MC0
+Ioc^N8<7lc^6gmOhDmP]PB2
+R24
+w1776074883
+8Waveform6.vwf.vt
+FWaveform6.vwf.vt
+!i122 41
+L0 30 123
+R16
+R17
+r1
+!s85 0
+31
+R27
+!s107 Waveform6.vwf.vt|
+!s90 -work|work|Waveform6.vwf.vt|
+!i113 0
+R21
+R22

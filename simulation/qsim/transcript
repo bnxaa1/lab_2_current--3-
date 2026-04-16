@@ -1,0 +1,82 @@
+# do lab_2.do
+# ** Warning: (vlib-34) Library already exists at "work".
+# Errors: 0, Warnings: 1
+# Questa Altera Starter FPGA Edition-64 vlog 2025.2 Compiler 2025.05 May 31 2025
+# Start time: 13:08:07 on Apr 13,2026
+# vlog -work work lab_2.vo 
+# ** Note: (vlog-220) 'c:/altera_lite/25.1std/questa_fse/win64/../modelsim.ini' is used as the ini file.
+# -- Compiling module lock_validation
+# 
+# Top level modules:
+# 	lock_validation
+# End time: 13:08:07 on Apr 13,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# Questa Altera Starter FPGA Edition-64 vlog 2025.2 Compiler 2025.05 May 31 2025
+# Start time: 13:08:07 on Apr 13,2026
+# vlog -work work Waveform6.vwf.vt 
+# ** Note: (vlog-220) 'c:/altera_lite/25.1std/questa_fse/win64/../modelsim.ini' is used as the ini file.
+# -- Compiling module lock_validation_vlg_vec_tst
+# 
+# Top level modules:
+# 	lock_validation_vlg_vec_tst
+# End time: 13:08:07 on Apr 13,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# ** Note: (vsim-220) 'c:/altera_lite/25.1std/questa_fse/win64/../modelsim.ini' is used as the ini file.
+# vsim -voptargs=""+acc"" -c -t 1ps -L cyclonev_ver -L altera_ver -L altera_mf_ver -L 220model_ver -L sgate_ver -L altera_lnsim_ver work.lock_validation_vlg_vec_tst 
+# Start time: 13:08:08 on Apr 13,2026
+# ** Note: (vsim-3813) Design is being optimized due to module recompilation...
+# ** Warning: (vopt-10908) Some optimizations are turned off because the +acc switch is in effect.
+# ** Note: (vopt-220) 'c:/altera_lite/25.1std/questa_fse/win64/../modelsim.ini' is used as the ini file.
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=0, Warnings=1.
+# //  Questa Altera Starter FPGA Edition-64
+# //  Version 2025.2 win64 May 31 2025
+# //
+# // Unpublished work. Copyright 2025 Siemens
+# //
+# // This material contains trade secrets or otherwise confidential information
+# // owned by Siemens Industry Software Inc. or its affiliates (collectively,
+# // "SISW"), or its licensors. Access to and use of this information is strictly
+# // limited as set forth in the Customer's applicable agreements with SISW.
+# //
+# // This material may not be copied, distributed, or otherwise disclosed outside
+# // of the Customer's facilities without the express written permission of SISW,
+# // and may not be used in any way not expressly authorized by SISW.
+# //
+# Loading work.lock_validation_vlg_vec_tst(fast)
+# Loading work.lock_validation(fast)
+# Loading cyclonev_ver.cyclonev_io_obuf(fast)
+# Loading cyclonev_ver.cyclonev_io_ibuf(fast)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__1)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__2)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__3)
+# Loading altera_ver.dffeas(fast)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__4)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__5)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__6)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__7)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__8)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__9)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__10)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__11)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__12)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__13)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__14)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__15)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__16)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__17)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__18)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__19)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__20)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__21)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__22)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__23)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__24)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__25)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__26)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__27)
+# after#28
+# ** Note: $finish    : Waveform6.vwf.vt(63)
+#    Time: 1 us  Iteration: 0  Instance: /lock_validation_vlg_vec_tst
+# End time: 13:08:11 on Apr 13,2026, Elapsed time: 0:00:03
+# Errors: 0, Warnings: 1

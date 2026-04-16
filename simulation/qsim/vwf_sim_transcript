@@ -1,0 +1,208 @@
+Determining the location of the ModelSim executable...
+
+Using: c:/altera_lite/25.1std/questa_fse/win64/
+
+To specify a ModelSim executable directory, select: Tools -> Options -> EDA Tool Options
+Note: if both Questa Intel FPGA Edition and ModelSim executables are available, Questa Intel FPGA Edition will be used.
+
+**** Generating the ModelSim Testbench ****
+
+quartus_eda --gen_testbench --tool=modelsim_oem --format=verilog --write_settings_files=off lab_2 -c lab_2 --vector_source="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/Waveform6.vwf" --testbench_file="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/Waveform6.vwf.vt"
+
+TBBmalloc: skip allocation functions replacement in ucrtbase.dll: unknown prologue for function _msize
+
+Info: *******************************************************************
+Info: Running Quartus Prime EDA Netlist Writer
+    Info: Version 25.1std.0 Build 1129 10/21/2025 SC Lite Edition
+    Info: Copyright (C) 2025  Altera Corporation. All rights reserved.
+    Info: Your use of Altera Corporation's design tools, logic functions 
+    Info: and other software and tools, and any partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Altera Program License 
+    Info: Subscription Agreement, the Altera Quartus Prime License Agreement,
+    Info: the Altera IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Altera and sold by Altera or its authorized distributors.  Please
+    Info: refer to the Altera Software License Subscription Agreements 
+    Info: on the Quartus Prime software download page.
+    Info: Processing started: Mon Apr 13 13:08:02 2026
+Info: Command: quartus_eda --gen_testbench --tool=modelsim_oem --format=verilog --write_settings_files=off lab_2 -c lab_2 --vector_source="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/Waveform6.vwf" --testbench_file="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/Waveform6.vwf.vt"
+Info (119006): Selected device 5CSEMA5F31C6 for design "lab_2"
+Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
+
+Completed successfully. 
+
+Completed successfully. 
+
+**** Generating the functional simulation netlist ****
+
+quartus_eda --write_settings_files=off --simulation --functional=on --flatten_buses=off --tool=modelsim_oem --format=verilog --output_directory="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/" lab_2 -c lab_2
+
+TBBmalloc: skip allocation functions replacement in ucrtbase.dll: unknown prologue for function _msize
+
+Info: *******************************************************************
+Info: Running Quartus Prime EDA Netlist Writer
+    Info: Version 25.1std.0 Build 1129 10/21/2025 SC Lite Edition
+    Info: Copyright (C) 2025  Altera Corporation. All rights reserved.
+    Info: Your use of Altera Corporation's design tools, logic functions 
+    Info: and other software and tools, and any partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Altera Program License 
+    Info: Subscription Agreement, the Altera Quartus Prime License Agreement,
+    Info: the Altera IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Altera and sold by Altera or its authorized distributors.  Please
+    Info: refer to the Altera Software License Subscription Agreements 
+    Info: on the Quartus Prime software download page.
+    Info: Processing started: Mon Apr 13 13:08:04 2026
+Info: Command: quartus_eda --write_settings_files=off --simulation=on --functional=on --flatten_buses=off --tool=modelsim_oem --format=verilog --output_directory="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/" lab_2 -c lab_2
+Info (119006): Selected device 5CSEMA5F31C6 for design "lab_2"
+Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
+Info (204019): Generated file lab_2.vo in folder "C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim//" for EDA simulation tool
+Info: Quartus Prime EDA Netlist Writer was successful. 0 errors, 1 warning
+    Info: Peak virtual memory: 4768 megabytes
+    Info: Processing ended: Mon Apr 13 13:08:05 2026
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:01
+
+Completed successfully. 
+
+**** Generating the ModelSim .do script ****
+
+C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/lab_2.do generated.
+
+Completed successfully. 
+
+**** Running the ModelSim simulation ****
+
+c:/altera_lite/25.1std/questa_fse/win64//vsim -c -do lab_2.do
+
+Reading pref.tcl
+
+
+# 2025.2
+
+
+# do lab_2.do
+
+# ** Warning: (vlib-34) Library already exists at "work".
+# Errors: 0, Warnings: 1
+
+# Questa Altera Starter FPGA Edition-64 vlog 2025.2 Compiler 2025.05 May 31 2025
+
+# Start time: 13:08:07 on Apr 13,2026
+# vlog -work work lab_2.vo 
+# ** Note: (vlog-220) 'c:/altera_lite/25.1std/questa_fse/win64/../modelsim.ini' is used as the ini file.
+
+# -- Compiling module lock_validation
+
+# 
+# Top level modules:
+
+# 	lock_validation
+# End time: 13:08:07 on Apr 13,2026, Elapsed time: 0:00:00
+
+# Errors: 0, Warnings: 0
+
+# Questa Altera Starter FPGA Edition-64 vlog 2025.2 Compiler 2025.05 May 31 2025
+
+# Start time: 13:08:07 on Apr 13,2026
+# vlog -work work Waveform6.vwf.vt 
+# ** Note: (vlog-220) 'c:/altera_lite/25.1std/questa_fse/win64/../modelsim.ini' is used as the ini file.
+
+# -- Compiling module lock_validation_vlg_vec_tst
+
+# 
+
+# Top level modules:
+# 	lock_validation_vlg_vec_tst
+# End time: 13:08:07 on Apr 13,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+
+# ** Note: (vsim-220) 'c:/altera_lite/25.1std/questa_fse/win64/../modelsim.ini' is used as the ini file.
+# vsim -voptargs=""+acc"" -c -t 1ps -L cyclonev_ver -L altera_ver -L altera_mf_ver -L 220model_ver -L sgate_ver -L altera_lnsim_ver work.lock_validation_vlg_vec_tst 
+# Start time: 13:08:08 on Apr 13,2026
+# ** Note: (vsim-3813) Design is being optimized due to module recompilation...
+# ** Warning: (vopt-10908) Some optimizations are turned off because the +acc switch is in effect.
+# ** Note: (vopt-220) 'c:/altera_lite/25.1std/questa_fse/win64/../modelsim.ini' is used as the ini file.
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=0, Warnings=1.
+# //  Questa Altera Starter FPGA Edition-64
+# //  Version 2025.2 win64 May 31 2025
+# //
+# // Unpublished work. Copyright 2025 Siemens
+# //
+# // This material contains trade secrets or otherwise confidential information
+# // owned by Siemens Industry Software Inc. or its affiliates (collectively,
+# // "SISW"), or its licensors. Access to and use of this information is strictly
+# // limited as set forth in the Customer's applicable agreements with SISW.
+# //
+# // This material may not be copied, distributed, or otherwise disclosed outside
+# // of the Customer's facilities without the express written permission of SISW,
+# // and may not be used in any way not expressly authorized by SISW.
+# //
+
+# Loading work.lock_validation_vlg_vec_tst(fast)
+# Loading work.lock_validation(fast)
+# Loading cyclonev_ver.cyclonev_io_obuf(fast)
+# Loading cyclonev_ver.cyclonev_io_ibuf(fast)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__1)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__2)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__3)
+# Loading altera_ver.dffeas(fast)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__4)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__5)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__6)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__7)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__8)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__9)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__10)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__11)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__12)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__13)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__14)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__15)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__16)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__17)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__18)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__19)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__20)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__21)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__22)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__23)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__24)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__25)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__26)
+# Loading cyclonev_ver.cyclonev_lcell_comb(fast__27)
+
+# after#28
+
+# ** Note: $finish    : Waveform6.vwf.vt(63)
+#    Time: 1 us  Iteration: 0  Instance: /lock_validation_vlg_vec_tst
+
+# End time: 13:08:11 on Apr 13,2026, Elapsed time: 0:00:03
+# Errors: 0, Warnings: 1
+
+Completed successfully. 
+
+**** Converting ModelSim VCD to vector waveform ****
+
+Reading C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/Waveform6.vwf...
+
+Reading C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/lab_2.msim.vcd...
+
+Processing channel transitions... 
+
+Writing the resulting VWF to C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/lab_2_20260413130811.sim.vwf
+
+Finished VCD to VWF conversion.
+
+Completed successfully. 
+
+All completed.
