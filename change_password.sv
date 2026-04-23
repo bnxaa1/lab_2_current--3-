@@ -1,198 +1,144 @@
-module change_pass (
-    input  logic       clk,
-    input  logic       resetN,
-    input  logic       start_change_pass,   // start when supervisor chooses change password
-    input  logic       enter_d,            // one pulse per keypad digit
-    input  logic [3:0] switches,            // keypad digit (0..9)
-
-    // signals coming from lock_validation
-    input  logic       lv_done,
-    input  logic       lv_correct,
-
-    // data read from memory during copy phase
-    input  logic [3:0] mem_data_out,
-
-    // outputs to memory
-    output logic       wren,
-    output logic [4:0] wAddress,
-    output logic [3:0] dataIn,
-	 
-    output logic [4:0] rAddress,
-
-    // outputs to lock_validation
-    output logic       lv_start,       // tells it to start validating now
-    output logic [4:0] lv_startingAddress,// where the first new pass is storesd in the mem
-
-    // status outputs
-    output logic       change_done, // This becomes 1 when the password change finished successfully.
-    output logic       confirm_error //This becomes 1 when the second entered password did not match the first one.
+module change_password (
+    input  logic        clk, resetN,
+    input  logic        start, enter_d, done,
+    input  logic        lv_correct, lv_error,
+    input  logic [3:0]  switches, code,
+    output logic        active, wren,
+    output logic        clk_en_override, ctrRst, srst_lv,
+    output logic        cp_complete, cp_fail,
+    output logic [3:0]  dataIn,
+    output logic [4:0]  wStartAddr, rStartAddr
 );
 
-  // using these we can soecifiy the intial adresses of the passwords 
-    localparam USER_START = 5'd0;
-    localparam TEMP_START = 5'd10;
-
-    typedef enum logic [2:0] {
-        S_IDLE,
-        S_STORE_FIRST,
-        S_STORE_TERM,
-        S_START_VALIDATE,
-        S_WAIT_VALIDATE,
-        S_COPY_TO_USER,
-        S_DONE,
-        S_ERROR
+    typedef enum logic [3:0] {
+        IDLE,
+        ENTRY_RST,
+        ENTRY,
+        VERIFY_RST,
+        VERIFY_WAIT,
+        VERIFY,
+        COPY_PREP,
+        COPY_WAIT1,
+        COPY_WAIT2,
+        COPY,
+        DONE,
+        ERROR
     } state_t;
 
-    state_t state, next_state;
+    state_t state_reg, state_next;
 
-    logic [2:0] store_count;   // counts first entered password digits
-    logic [2:0] copy_count;    // counts copy steps from temp to user
-
-
-    always_ff @(posedge clk or negedge resetN) begin
-        if (!resetN) begin
-            state       <= S_IDLE;
-            store_count <= 3'd0;
-            copy_count  <= 3'd0;
-        end
-        else begin
-            state <= next_state;
-
-            case (state)
-
-                S_IDLE: begin
-                    if (start_change_pass) begin
-                        store_count <= 3'd0;
-                        copy_count  <= 3'd0;
-                    end
-                end
-
-                // first entered password is stored in TEMP memory
-                S_STORE_FIRST: begin
-                    if (enter_d)
-                        store_count <= store_count + 3'd1;
-                end
-
-                // after successful validation, start copying from temp to user
-                S_WAIT_VALIDATE: begin
-                    if (lv_done && lv_correct)
-                        copy_count <= 3'd0;
-                end
-
-                S_COPY_TO_USER: begin
-                    if (mem_data_out != 4'd10)
-                        copy_count <= copy_count + 3'd1;
-                end
-
-                S_DONE, S_ERROR: begin
-                    store_count <= 3'd0;
-                    copy_count  <= 3'd0;
-                end
-
-                default: begin
-                    store_count <= store_count;
-                    copy_count  <= copy_count;
-                end
-            endcase
-        end
+    always_ff @(posedge clk, negedge resetN) begin
+        if (!resetN)
+            state_reg <= IDLE;
+        else
+            state_reg <= state_next;
     end
 
+    always_comb begin : change_password_fsm
+        state_next      = state_reg;
+        active          = 1'b1;
+        wren            = 1'b0;
+        dataIn          = 4'b0;
+        wStartAddr      = 5'd20;
+        rStartAddr      = 5'd20;
+        clk_en_override = 1'b0;
+        ctrRst          = 1'b0;
+        srst_lv         = 1'b0;
+        cp_complete     = 1'b0;
+        cp_fail         = 1'b0;
 
-    always_comb begin
-        // defaults
-        next_state         = state;
+        case (state_reg)
 
-        wren               = 1'b0;
-        wAddress           = 5'd0;
-        dataIn             = 4'd0;
-
-        rAddress           = 5'd0;
-
-        lv_start           = 1'b0;
-        lv_startingAddress = TEMP_START;
-
-        change_done        = 1'b0;
-        confirm_error      = 1'b0;
-
-        case (state)
-
-           
-            // wait for start request
-            S_IDLE: begin
-                if (start_change_pass)
-                    next_state = S_STORE_FIRST;
+            IDLE: begin
+                active = 1'b0;
+                if (start)
+                    state_next = ENTRY_RST;
             end
 
-            // store first entered password into temp memory
-            // digit by digit from keypad
-            S_STORE_FIRST: begin
+            ENTRY_RST: begin
+                ctrRst     = 1'b1;
+                srst_lv    = 1'b1;
+                wStartAddr = 5'd20;
+                state_next = ENTRY;
+            end
+
+            ENTRY: begin
+                srst_lv    = 1'b1;
+                wStartAddr = 5'd20;
+                dataIn     = switches;
                 if (enter_d) begin
-                    wren     = 1'b1;
-                    wAddress = TEMP_START + store_count;
-                    dataIn   = switches;
-
-                    if (store_count == 3'd3)
-                        next_state = S_STORE_TERM;
+                    wren            = 1'b1;
+                    clk_en_override = 1'b1;
+                    if (switches == 4'b1010 || done)
+                        state_next = VERIFY_RST;
                 end
             end
 
-            // store terminator 10 after the 4 digits
-            S_STORE_TERM: begin
-                wren     = 1'b1;
-                wAddress = TEMP_START + 3'd4;
-                dataIn   = 4'd10;
-                next_state = S_START_VALIDATE;
+            VERIFY_RST: begin
+                ctrRst     = 1'b1;
+                srst_lv    = 1'b1;
+                rStartAddr = 5'd20;
+                state_next = VERIFY_WAIT;
             end
 
-            // start lock_validation
-            // lock_validation compares the second entered
-            // password against the password at TEMP_START
-            S_START_VALIDATE: begin
-                lv_start = 1'b1;
-                next_state = S_WAIT_VALIDATE;
+            VERIFY_WAIT: begin
+                rStartAddr = 5'd20;
+                state_next = VERIFY;
             end
 
-            // wait for lock_validation result
-            S_WAIT_VALIDATE: begin
-                if (lv_done) begin
-                    if (lv_correct)
-                        next_state = S_COPY_TO_USER;
-                    else
-                        next_state = S_ERROR;
-                end
+            VERIFY: begin
+                rStartAddr = 5'd20;
+                if (enter_d)
+                    clk_en_override = 1'b1;
+                if (lv_correct)
+                    state_next = COPY_PREP;
+                else if (lv_error)
+                    state_next = ERROR;
             end
 
-
-            // copy from TEMP memory to USER memory
-            // stop when value 10 is reached
-            S_COPY_TO_USER: begin
-                rAddress = TEMP_START + copy_count;
-
-                wren     = 1'b1;
-                wAddress = USER_START + copy_count;
-                dataIn   = mem_data_out;
-
-                if (mem_data_out == 4'd10)
-                    next_state = S_DONE;
+            COPY_PREP: begin
+                ctrRst     = 1'b1;
+                rStartAddr = 5'd20;
+                wStartAddr = 5'd0;
+                state_next = COPY_WAIT1;
             end
 
-				
-            // success
-            S_DONE: begin
-                change_done = 1'b1;
-                next_state  = S_IDLE;
+            COPY_WAIT1: begin
+                rStartAddr = 5'd20;
+                wStartAddr = 5'd0;
+                state_next = COPY_WAIT2;
             end
 
-				
-            // confirdigit_inmation error
-            S_ERROR: begin
-                confirm_error = 1'b1;
-                next_state    = S_IDLE;
+            COPY_WAIT2: begin
+                rStartAddr = 5'd20;
+                wStartAddr = 5'd0;
+                state_next = COPY;
             end
 
-            default: begin
-                next_state = S_IDLE;
+            COPY: begin
+                rStartAddr      = 5'd20;
+                wStartAddr      = 5'd0;
+                wren            = 1'b1;
+                dataIn          = code;
+                clk_en_override = 1'b1;
+                if (code == 4'b1010 || done)
+                    state_next = DONE;
+                else
+                    state_next = COPY_WAIT1;
             end
+
+            DONE: begin
+                cp_complete = 1'b1;
+                state_next  = IDLE;
+            end
+
+            ERROR: begin
+                cp_fail    = 1'b1;
+                state_next = IDLE;
+            end
+
+            default: state_next = IDLE;
+
         endcase
     end
 

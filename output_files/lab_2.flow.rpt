@@ -1,6 +1,6 @@
 Flow report for lab_2
-Mon Apr 13 13:08:05 2026
-Quartus Prime Version 25.1std.0 Build 1129 10/21/2025 SC Lite Edition
+Fri Apr 17 10:41:48 2026
+Quartus Prime Version 23.1std.1 Build 993 05/14/2024 SC Lite Edition
 
 
 ---------------------
@@ -21,46 +21,46 @@ Quartus Prime Version 25.1std.0 Build 1129 10/21/2025 SC Lite Edition
 ----------------
 ; Legal Notice ;
 ----------------
-Copyright (C) 2025  Altera Corporation. All rights reserved.
-Your use of Altera Corporation's design tools, logic functions 
+Copyright (C) 2024  Intel Corporation. All rights reserved.
+Your use of Intel Corporation's design tools, logic functions 
 and other software and tools, and any partner logic 
 functions, and any output files from any of the foregoing 
 (including device programming or simulation files), and any 
 associated documentation or information are expressly subject 
-to the terms and conditions of the Altera Program License 
-Subscription Agreement, the Altera Quartus Prime License Agreement,
-the Altera IP License Agreement, or other applicable license
+to the terms and conditions of the Intel Program License 
+Subscription Agreement, the Intel Quartus Prime License Agreement,
+the Intel FPGA IP License Agreement, or other applicable license
 agreement, including, without limitation, that your use is for
 the sole purpose of programming logic devices manufactured by
-Altera and sold by Altera or its authorized distributors.  Please
-refer to the Altera Software License Subscription Agreements 
-on the Quartus Prime software download page.
+Intel and sold by Intel or its authorized distributors.  Please
+refer to the applicable agreement for further details, at
+https://fpgasoftware.intel.com/eula.
 
 
 
-+-----------------------------------------------------------------------------------+
-; Flow Summary                                                                      ;
-+---------------------------------+-------------------------------------------------+
-; Flow Status                     ; Successful - Mon Apr 13 13:08:05 2026           ;
-; Quartus Prime Version           ; 25.1std.0 Build 1129 10/21/2025 SC Lite Edition ;
-; Revision Name                   ; lab_2                                           ;
-; Top-level Entity Name           ; lock_validation                                 ;
-; Family                          ; Cyclone V                                       ;
-; Device                          ; 5CSEMA5F31C6                                    ;
-; Timing Models                   ; Final                                           ;
-; Logic utilization (in ALMs)     ; N/A                                             ;
-; Total registers                 ; 13                                              ;
-; Total pins                      ; 19                                              ;
-; Total virtual pins              ; 0                                               ;
-; Total block memory bits         ; 0                                               ;
-; Total DSP Blocks                ; 0                                               ;
-; Total HSSI RX PCSs              ; 0                                               ;
-; Total HSSI PMA RX Deserializers ; 0                                               ;
-; Total HSSI TX PCSs              ; 0                                               ;
-; Total HSSI PMA TX Serializers   ; 0                                               ;
-; Total PLLs                      ; 0                                               ;
-; Total DLLs                      ; 0                                               ;
-+---------------------------------+-------------------------------------------------+
++----------------------------------------------------------------------------------+
+; Flow Summary                                                                     ;
++---------------------------------+------------------------------------------------+
+; Flow Status                     ; Successful - Fri Apr 17 10:41:48 2026          ;
+; Quartus Prime Version           ; 23.1std.1 Build 993 05/14/2024 SC Lite Edition ;
+; Revision Name                   ; lab_2                                          ;
+; Top-level Entity Name           ; lock_validation_wrapper                        ;
+; Family                          ; Cyclone V                                      ;
+; Device                          ; 5CSEMA5F31C6                                   ;
+; Timing Models                   ; Final                                          ;
+; Logic utilization (in ALMs)     ; N/A                                            ;
+; Total registers                 ; 17                                             ;
+; Total pins                      ; 26                                             ;
+; Total virtual pins              ; 0                                              ;
+; Total block memory bits         ; 128                                            ;
+; Total DSP Blocks                ; 0                                              ;
+; Total HSSI RX PCSs              ; 0                                              ;
+; Total HSSI PMA RX Deserializers ; 0                                              ;
+; Total HSSI TX PCSs              ; 0                                              ;
+; Total HSSI PMA TX Serializers   ; 0                                              ;
+; Total PLLs                      ; 0                                              ;
+; Total DLLs                      ; 0                                              ;
++---------------------------------+------------------------------------------------+
 
 
 +-----------------------------------------+
@@ -68,51 +68,51 @@ on the Quartus Prime software download page.
 +-------------------+---------------------+
 ; Option            ; Setting             ;
 +-------------------+---------------------+
-; Start date & time ; 04/13/2026 12:51:36 ;
+; Start date & time ; 04/17/2026 10:41:40 ;
 ; Main task         ; Compilation         ;
 ; Revision Name     ; lab_2               ;
 +-------------------+---------------------+
 
 
-+----------------------------------------------------------------------------------------------------------------------------------------------------+
-; Flow Non-Default Global Settings                                                                                                                   ;
-+-------------------------------------+----------------------------------------+---------------+-----------------+-----------------------------------+
-; Assignment Name                     ; Value                                  ; Default Value ; Entity Name     ; Section Id                        ;
-+-------------------------------------+----------------------------------------+---------------+-----------------+-----------------------------------+
-; COMPILER_SIGNATURE_ID               ; 82330770358611.177607389636432         ; --            ; --              ; --                                ;
-; EDA_GENERATE_FUNCTIONAL_NETLIST     ; Off                                    ; --            ; --              ; eda_board_design_timing           ;
-; EDA_GENERATE_FUNCTIONAL_NETLIST     ; Off                                    ; --            ; --              ; eda_board_design_boundary_scan    ;
-; EDA_GENERATE_FUNCTIONAL_NETLIST     ; Off                                    ; --            ; --              ; eda_board_design_signal_integrity ;
-; EDA_GENERATE_FUNCTIONAL_NETLIST     ; Off                                    ; --            ; --              ; eda_board_design_symbol           ;
-; EDA_OUTPUT_DATA_FORMAT              ; Systemverilog Hdl                      ; --            ; --              ; eda_simulation                    ;
-; EDA_SIMULATION_TOOL                 ; QuestaSim (SystemVerilog)              ; <None>        ; --              ; --                                ;
-; EDA_TIME_SCALE                      ; 1 ps                                   ; --            ; --              ; eda_simulation                    ;
-; MAX_CORE_JUNCTION_TEMP              ; 85                                     ; --            ; --              ; --                                ;
-; MIN_CORE_JUNCTION_TEMP              ; 0                                      ; --            ; --              ; --                                ;
-; MISC_FILE                           ; ram.bsf                                ; --            ; --              ; --                                ;
-; MISC_FILE                           ; ram_inst.v                             ; --            ; --              ; --                                ;
-; MISC_FILE                           ; ram_bb.v                               ; --            ; --              ; --                                ;
-; MISC_FILE                           ; ram_syn.v                              ; --            ; --              ; --                                ;
-; MISC_FILE                           ; counter.bsf                            ; --            ; --              ; --                                ;
-; MISC_FILE                           ; counter_inst.v                         ; --            ; --              ; --                                ;
-; MISC_FILE                           ; counter_bb.v                           ; --            ; --              ; --                                ;
-; MISC_FILE                           ; counter_syn.v                          ; --            ; --              ; --                                ;
-; MISC_FILE                           ; ThreeBitsCounter.bsf                   ; --            ; --              ; --                                ;
-; MISC_FILE                           ; ThreeBitsCounter_inst.v                ; --            ; --              ; --                                ;
-; MISC_FILE                           ; ThreeBitsCounter_bb.v                  ; --            ; --              ; --                                ;
-; MISC_FILE                           ; ThreeBitsCounter_syn.v                 ; --            ; --              ; --                                ;
-; MISC_FILE                           ; TwentyBitsCounter.bsf                  ; --            ; --              ; --                                ;
-; MISC_FILE                           ; TwentyBitsCounter_inst.v               ; --            ; --              ; --                                ;
-; MISC_FILE                           ; TwentyBitsCounter_bb.v                 ; --            ; --              ; --                                ;
-; MISC_FILE                           ; TwentyBitsCounter_syn.v                ; --            ; --              ; --                                ;
-; PARTITION_COLOR                     ; -- (Not supported for targeted family) ; --            ; lock_validation ; Top                               ;
-; PARTITION_FITTER_PRESERVATION_LEVEL ; -- (Not supported for targeted family) ; --            ; lock_validation ; Top                               ;
-; PARTITION_NETLIST_TYPE              ; -- (Not supported for targeted family) ; --            ; lock_validation ; Top                               ;
-; POWER_BOARD_THERMAL_MODEL           ; None (CONSERVATIVE)                    ; --            ; --              ; --                                ;
-; POWER_PRESET_COOLING_SOLUTION       ; 23 MM HEAT SINK WITH 200 LFPM AIRFLOW  ; --            ; --              ; --                                ;
-; PROJECT_OUTPUT_DIRECTORY            ; output_files                           ; --            ; --              ; --                                ;
-; TOP_LEVEL_ENTITY                    ; lock_validation                        ; lab_2         ; --              ; --                                ;
-+-------------------------------------+----------------------------------------+---------------+-----------------+-----------------------------------+
++------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Flow Non-Default Global Settings                                                                                                                           ;
++-------------------------------------+----------------------------------------+---------------+-------------------------+-----------------------------------+
+; Assignment Name                     ; Value                                  ; Default Value ; Entity Name             ; Section Id                        ;
++-------------------------------------+----------------------------------------+---------------+-------------------------+-----------------------------------+
+; COMPILER_SIGNATURE_ID               ; 66325071257757.177641170006044         ; --            ; --                      ; --                                ;
+; EDA_GENERATE_FUNCTIONAL_NETLIST     ; Off                                    ; --            ; --                      ; eda_board_design_timing           ;
+; EDA_GENERATE_FUNCTIONAL_NETLIST     ; Off                                    ; --            ; --                      ; eda_board_design_boundary_scan    ;
+; EDA_GENERATE_FUNCTIONAL_NETLIST     ; Off                                    ; --            ; --                      ; eda_board_design_signal_integrity ;
+; EDA_GENERATE_FUNCTIONAL_NETLIST     ; Off                                    ; --            ; --                      ; eda_board_design_symbol           ;
+; EDA_OUTPUT_DATA_FORMAT              ; Systemverilog Hdl                      ; --            ; --                      ; eda_simulation                    ;
+; EDA_SIMULATION_TOOL                 ; QuestaSim (SystemVerilog)              ; <None>        ; --                      ; --                                ;
+; EDA_TIME_SCALE                      ; 1 ps                                   ; --            ; --                      ; eda_simulation                    ;
+; MAX_CORE_JUNCTION_TEMP              ; 85                                     ; --            ; --                      ; --                                ;
+; MIN_CORE_JUNCTION_TEMP              ; 0                                      ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; ram.bsf                                ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; ram_inst.v                             ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; ram_bb.v                               ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; ram_syn.v                              ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; counter.bsf                            ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; counter_inst.v                         ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; counter_bb.v                           ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; counter_syn.v                          ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; ThreeBitsCounter.bsf                   ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; ThreeBitsCounter_inst.v                ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; ThreeBitsCounter_bb.v                  ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; ThreeBitsCounter_syn.v                 ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; TwentyBitsCounter.bsf                  ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; TwentyBitsCounter_inst.v               ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; TwentyBitsCounter_bb.v                 ; --            ; --                      ; --                                ;
+; MISC_FILE                           ; TwentyBitsCounter_syn.v                ; --            ; --                      ; --                                ;
+; PARTITION_COLOR                     ; -- (Not supported for targeted family) ; --            ; lock_validation_wrapper ; Top                               ;
+; PARTITION_FITTER_PRESERVATION_LEVEL ; -- (Not supported for targeted family) ; --            ; lock_validation_wrapper ; Top                               ;
+; PARTITION_NETLIST_TYPE              ; -- (Not supported for targeted family) ; --            ; lock_validation_wrapper ; Top                               ;
+; POWER_BOARD_THERMAL_MODEL           ; None (CONSERVATIVE)                    ; --            ; --                      ; --                                ;
+; POWER_PRESET_COOLING_SOLUTION       ; 23 MM HEAT SINK WITH 200 LFPM AIRFLOW  ; --            ; --                      ; --                                ;
+; PROJECT_OUTPUT_DIRECTORY            ; output_files                           ; --            ; --                      ; --                                ;
+; TOP_LEVEL_ENTITY                    ; lock_validation_wrapper                ; lab_2         ; --                      ; --                                ;
++-------------------------------------+----------------------------------------+---------------+-------------------------+-----------------------------------+
 
 
 +--------------------------------------------------------------------------------------------------------------------------+
@@ -120,22 +120,8 @@ on the Quartus Prime software download page.
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 ; Module Name          ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Analysis & Synthesis ; 00:00:13     ; 1.0                     ; 4912 MB             ; 00:00:30                           ;
-; EDA Netlist Writer   ; 00:00:01     ; 1.0                     ; 4752 MB             ; 00:00:01                           ;
-; EDA Netlist Writer   ; 00:00:01     ; 1.0                     ; 4768 MB             ; 00:00:01                           ;
-; EDA Netlist Writer   ; 00:00:00     ; 1.0                     ; 4752 MB             ; 00:00:01                           ;
-; EDA Netlist Writer   ; 00:00:01     ; 1.0                     ; 4768 MB             ; 00:00:01                           ;
-; EDA Netlist Writer   ; 00:00:01     ; 1.0                     ; 4752 MB             ; 00:00:01                           ;
-; EDA Netlist Writer   ; 00:00:00     ; 1.0                     ; 4768 MB             ; 00:00:01                           ;
-; EDA Netlist Writer   ; 00:00:01     ; 1.0                     ; 4752 MB             ; 00:00:01                           ;
-; EDA Netlist Writer   ; 00:00:00     ; 1.0                     ; 4768 MB             ; 00:00:01                           ;
-; EDA Netlist Writer   ; 00:00:01     ; 1.0                     ; 4752 MB             ; 00:00:01                           ;
-; EDA Netlist Writer   ; 00:00:01     ; 1.0                     ; 4768 MB             ; 00:00:01                           ;
-; EDA Netlist Writer   ; 00:00:01     ; 1.0                     ; 4752 MB             ; 00:00:01                           ;
-; EDA Netlist Writer   ; 00:00:00     ; 1.0                     ; 4768 MB             ; 00:00:01                           ;
-; EDA Netlist Writer   ; 00:00:01     ; 1.0                     ; 4752 MB             ; 00:00:01                           ;
-; EDA Netlist Writer   ; 00:00:01     ; 1.0                     ; 4768 MB             ; 00:00:01                           ;
-; Total                ; 00:00:23     ; --                      ; --                  ; 00:00:44                           ;
+; Analysis & Synthesis ; 00:00:09     ; 1.0                     ; 4838 MB             ; 00:00:19                           ;
+; Total                ; 00:00:09     ; --                      ; --                  ; 00:00:19                           ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 
@@ -144,21 +130,7 @@ on the Quartus Prime software download page.
 +----------------------+------------------+------------+------------+----------------+
 ; Module Name          ; Machine Hostname ; OS Name    ; OS Version ; Processor type ;
 +----------------------+------------------+------------+------------+----------------+
-; Analysis & Synthesis ; Yehyaalyoussef   ; Windows 10 ; 10.0       ; x86_64         ;
-; EDA Netlist Writer   ; Yehyaalyoussef   ; Windows 10 ; 10.0       ; x86_64         ;
-; EDA Netlist Writer   ; Yehyaalyoussef   ; Windows 10 ; 10.0       ; x86_64         ;
-; EDA Netlist Writer   ; Yehyaalyoussef   ; Windows 10 ; 10.0       ; x86_64         ;
-; EDA Netlist Writer   ; Yehyaalyoussef   ; Windows 10 ; 10.0       ; x86_64         ;
-; EDA Netlist Writer   ; Yehyaalyoussef   ; Windows 10 ; 10.0       ; x86_64         ;
-; EDA Netlist Writer   ; Yehyaalyoussef   ; Windows 10 ; 10.0       ; x86_64         ;
-; EDA Netlist Writer   ; Yehyaalyoussef   ; Windows 10 ; 10.0       ; x86_64         ;
-; EDA Netlist Writer   ; Yehyaalyoussef   ; Windows 10 ; 10.0       ; x86_64         ;
-; EDA Netlist Writer   ; Yehyaalyoussef   ; Windows 10 ; 10.0       ; x86_64         ;
-; EDA Netlist Writer   ; Yehyaalyoussef   ; Windows 10 ; 10.0       ; x86_64         ;
-; EDA Netlist Writer   ; Yehyaalyoussef   ; Windows 10 ; 10.0       ; x86_64         ;
-; EDA Netlist Writer   ; Yehyaalyoussef   ; Windows 10 ; 10.0       ; x86_64         ;
-; EDA Netlist Writer   ; Yehyaalyoussef   ; Windows 10 ; 10.0       ; x86_64         ;
-; EDA Netlist Writer   ; Yehyaalyoussef   ; Windows 10 ; 10.0       ; x86_64         ;
+; Analysis & Synthesis ; DESKTOP-H223HQV  ; Windows 10 ; 10.0       ; x86_64         ;
 +----------------------+------------------+------------+------------+----------------+
 
 
@@ -166,20 +138,6 @@ on the Quartus Prime software download page.
 ; Flow Log ;
 ------------
 quartus_map --read_settings_files=on --write_settings_files=off lab_2 -c lab_2
-quartus_eda --gen_testbench --tool=modelsim_oem --format=verilog --write_settings_files=off lab_2 -c lab_2 --vector_source="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/Waveform6.vwf" --testbench_file="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/Waveform6.vwf.vt"
-quartus_eda --write_settings_files=off --simulation=on --functional=on --flatten_buses=off --tool=modelsim_oem --format=verilog --output_directory="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/" lab_2 -c lab_2
-quartus_eda --gen_testbench --tool=modelsim_oem --format=verilog --write_settings_files=off lab_2 -c lab_2 --vector_source="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/Waveform6.vwf" --testbench_file="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/Waveform6.vwf.vt"
-quartus_eda --write_settings_files=off --simulation=on --functional=on --flatten_buses=off --tool=modelsim_oem --format=verilog --output_directory="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/" lab_2 -c lab_2
-quartus_eda --gen_testbench --tool=modelsim_oem --format=verilog --write_settings_files=off lab_2 -c lab_2 --vector_source="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/Waveform6.vwf" --testbench_file="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/Waveform6.vwf.vt"
-quartus_eda --write_settings_files=off --simulation=on --functional=on --flatten_buses=off --tool=modelsim_oem --format=verilog --output_directory="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/" lab_2 -c lab_2
-quartus_eda --gen_testbench --tool=modelsim_oem --format=verilog --write_settings_files=off lab_2 -c lab_2 --vector_source="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/Waveform6.vwf" --testbench_file="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/Waveform6.vwf.vt"
-quartus_eda --write_settings_files=off --simulation=on --functional=on --flatten_buses=off --tool=modelsim_oem --format=verilog --output_directory="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/" lab_2 -c lab_2
-quartus_eda --gen_testbench --tool=modelsim_oem --format=verilog --write_settings_files=off lab_2 -c lab_2 --vector_source="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/Waveform6.vwf" --testbench_file="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/Waveform6.vwf.vt"
-quartus_eda --write_settings_files=off --simulation=on --functional=on --flatten_buses=off --tool=modelsim_oem --format=verilog --output_directory="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/" lab_2 -c lab_2
-quartus_eda --gen_testbench --tool=modelsim_oem --format=verilog --write_settings_files=off lab_2 -c lab_2 --vector_source="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/Waveform6.vwf" --testbench_file="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/Waveform6.vwf.vt"
-quartus_eda --write_settings_files=off --simulation=on --functional=on --flatten_buses=off --tool=modelsim_oem --format=verilog --output_directory="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/" lab_2 -c lab_2
-quartus_eda --gen_testbench --tool=modelsim_oem --format=verilog --write_settings_files=off lab_2 -c lab_2 --vector_source="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/Waveform6.vwf" --testbench_file="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/Waveform6.vwf.vt"
-quartus_eda --write_settings_files=off --simulation=on --functional=on --flatten_buses=off --tool=modelsim_oem --format=verilog --output_directory="C:/Users/mahaz/Desktop/trash/lab_2_current (3)/lab_2_current/simulation/qsim/" lab_2 -c lab_2
 
 
 

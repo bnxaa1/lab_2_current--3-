@@ -1,0 +1,284 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+dC:/intelFPGA/18.1
+vclock1
+Z0 DXx6 sv_std 3 std 0 22 AD7iAPLo6nTIKk<N0eo=D3
+Z1 !s110 1776966350
+!i10b 1
+!s100 CI^d2z0g=[1`GPMWPb21D1
+I=6b=8M3k0HFC>>]QdP<Ez1
+Z2 VDg1SIo80bB@j0V0VzS_@n1
+!s105 clock1_sv_unit
+S1
+Z3 dC:/Users/mahaz/Desktop/lab_2_current (3)
+w1776933718
+8clock1.sv
+Fclock1.sv
+L0 1
+Z4 OV;L;10.5b;63
+r1
+!s85 0
+31
+Z5 !s108 1776966350.000000
+!s107 clock1.sv|
+!s90 -reportprogress|300|-sv|-work|work|clock1.sv|
+!i113 1
+Z6 o-sv -work work
+Z7 tCvgOpt 0
+vcodeStorage
+R0
+R1
+!i10b 1
+!s100 b6ZjB4QSkNOMonhFFR:5W0
+IAW866hA:=?cUdVS8_mVc@3
+R2
+!s105 codeStorage_sv_unit
+S1
+R3
+w1775926016
+8codeStorage.sv
+FcodeStorage.sv
+L0 1
+R4
+r1
+!s85 0
+31
+R5
+!s107 codeStorage.sv|
+!s90 -reportprogress|300|-sv|-work|work|codeStorage.sv|
+!i113 1
+R6
+R7
+ncode@storage
+vcounter
+R1
+!i10b 1
+!s100 n2a17z=h`[CKcEXKi_=0N2
+IZ[B8cleB9V@JH2>1Z3]L52
+R2
+R3
+w1772707296
+8counter.v
+Fcounter.v
+Z8 L0 40
+R4
+r1
+!s85 0
+31
+R5
+!s107 counter.v|
+!s90 -reportprogress|300|-work|work|counter.v|
+!i113 1
+Z9 o-work work
+R7
+vlock_validation
+R0
+Z10 !s110 1776966351
+!i10b 1
+!s100 Zgnb@[FPkALmNP7WTzOD:3
+IAdI52bG4gjJ[2_WKOk11?3
+R2
+!s105 lock_validation_sv_unit
+S1
+R3
+w1776962303
+8lock_validation.sv
+Flock_validation.sv
+L0 1
+R4
+r1
+!s85 0
+31
+Z11 !s108 1776966351.000000
+!s107 lock_validation.sv|
+!s90 -reportprogress|300|-sv|-work|work|lock_validation.sv|
+!i113 1
+R6
+R7
+vlock_validation_wrapper
+R0
+R10
+!i10b 1
+!s100 [ULQ66:G1>>O0EBLeFi012
+I<[UHFGfdVg:_bb>L4:f_C2
+R2
+!s105 lock_validation_wrapper_sv_unit
+S1
+R3
+w1776948069
+8lock_validation_wrapper.sv
+Flock_validation_wrapper.sv
+L0 1
+R4
+r1
+!s85 0
+31
+R11
+!s107 lock_validation_wrapper.sv|
+!s90 -reportprogress|300|-sv|-work|work|lock_validation_wrapper.sv|
+!i113 1
+R6
+R7
+vone_pulse_generator
+R0
+R1
+!i10b 1
+!s100 >>H:Mhb6n4E@nm2`CDmYf3
+I>1f7[nRCB6FFc]1j`YHc93
+R2
+!s105 one_pulse_generator_sv_unit
+S1
+R3
+w1776864982
+8one_pulse_generator.sv
+Fone_pulse_generator.sv
+L0 1
+R4
+r1
+!s85 0
+31
+R5
+!s107 one_pulse_generator.sv|
+!s90 -reportprogress|300|-sv|-work|work|one_pulse_generator.sv|
+!i113 1
+R6
+R7
+vram
+R1
+!i10b 1
+!s100 R56`P`9Hg3=D;0?@ZiC7?3
+IcaTVR0T1GOWN=`c@a0aRY3
+R2
+R3
+w1775860920
+8ram.v
+Fram.v
+R8
+R4
+r1
+!s85 0
+31
+R5
+!s107 ram.v|
+!s90 -reportprogress|300|-work|work|ram.v|
+!i113 1
+R9
+R7
+vsixteenbitsctr
+R1
+!i10b 1
+!s100 2SE<MLb931coN:KOAF`a^0
+IZMQgj5@^O@[0Hcgo88=7f3
+R2
+R3
+w1776861785
+8sixteenbitsctr.v
+Fsixteenbitsctr.v
+R8
+R4
+r1
+!s85 0
+31
+R5
+!s107 sixteenbitsctr.v|
+!s90 -reportprogress|300|-work|work|sixteenbitsctr.v|
+!i113 1
+R9
+R7
+vtb_lock_validation_wrapper
+R0
+R10
+!i10b 1
+!s100 JR8kJD36`zRncUVd6AIKg0
+Ie=_]@h7dA<a<hT;_REjZV0
+R2
+!s105 tb_lock_validation_wrapper_sv_unit
+S1
+R3
+w1776966225
+8tb_lock_validation_wrapper.sv
+Ftb_lock_validation_wrapper.sv
+L0 20
+R4
+r1
+!s85 0
+31
+R11
+!s107 tb_lock_validation_wrapper.sv|
+!s90 -reportprogress|300|-sv|-work|work|tb_lock_validation_wrapper.sv|
+!i113 1
+R6
+R7
+vthirteenBitsCtr
+R1
+!i10b 1
+!s100 ;g52oG?c?;dLQZTYkHOPe3
+I6bHUk<0T0G=79oW7>7hzR0
+R2
+R3
+w1776864711
+8thirteenBitsCtr.v
+FthirteenBitsCtr.v
+R8
+R4
+r1
+!s85 0
+31
+R5
+!s107 thirteenBitsCtr.v|
+!s90 -reportprogress|300|-work|work|thirteenBitsCtr.v|
+!i113 1
+R9
+R7
+nthirteen@bits@ctr
+vThreeBitsCounter
+R1
+!i10b 1
+!s100 jk5LS5P@Q9=SQz8LMaRoT0
+I8T<FQF]`IRAYi8[=Vz<0h2
+R2
+R3
+w1775909196
+8ThreeBitsCounter.v
+FThreeBitsCounter.v
+R8
+R4
+r1
+!s85 0
+31
+R5
+!s107 ThreeBitsCounter.v|
+!s90 -reportprogress|300|-work|work|ThreeBitsCounter.v|
+!i113 1
+R9
+R7
+n@three@bits@counter
+vTwentyBitsCounter
+R1
+!i10b 1
+!s100 P_XYL5B8LVoOAFT`=ZSoH2
+IaF6>;JRQ15A2>[S7X4k;i2
+R2
+R3
+w1776374784
+8TwentyBitsCounter.v
+FTwentyBitsCounter.v
+R8
+R4
+r1
+!s85 0
+31
+R5
+!s107 TwentyBitsCounter.v|
+!s90 -reportprogress|300|-work|work|TwentyBitsCounter.v|
+!i113 1
+R9
+R7
+n@twenty@bits@counter

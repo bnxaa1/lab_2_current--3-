@@ -4,11 +4,11 @@ This file tracks confirmed bugs and incomplete wiring that must be resolved befo
 
 ---
 
-## [HIGH] 1. Debounce counter too short — `one_pulse_generator.sv`
+## ~~[HIGH] 1. Debounce counter too short — `one_pulse_generator.sv`~~ **FIXED**
 
-**Problem:** `counter` is a 4-bit IP. `done_clk = &ctr` fires at `ctr = 15`, which is only **300 ns** at 50 MHz. Physical buttons need ~10–20 ms of debounce time (~500K–1M cycles).
+**Was:** `counter` is a 4-bit IP firing at 15 cycles = 300 ns at 50 MHz. Too short for physical button debounce.
 
-**Fix:** Replace the 4-bit `counter` instance inside `one_pulse_generator` with a wider counter (e.g. a new 20-bit IP similar to `TwentyBitsCounter`) and update `done_clk` to compare against the correct cycle count for the target debounce window.
+**Fix applied:** `clock1.sv` divides the 50 MHz system clock to `clk1ms` (1 kHz). `lab_2.sv` feeds `clk1ms` into `lock_validation`, which passes it to `one_pulse_generator`. The existing 4-bit counter now counts 15 cycles × 1 ms = **15 ms** — within the 10–20 ms target.
 
 ---
 
@@ -44,20 +44,12 @@ This file tracks confirmed bugs and incomplete wiring that must be resolved befo
 
 ---
 
-## [MEDIUM] 6. Timeout counter too narrow for 5 s — `access_permission_wrapper.sv` line 42
+## ~~[MEDIUM] 6. Timeout counter too narrow for 5 s — `access_permission_wrapper.sv` line 42~~ **FIXED**
 
-**Problem:** `TwentyBitsCounter` is 20 bits (max 1,048,575). The current compare value of 1,000,000 gives ~20 ms at 50 MHz. A 5-second timeout requires counting to **250,000,000**, which needs a **28-bit counter** (`2^28 = 268,435,456`).
+**Was:** 20-bit counter, 1,000,000 compare → ~20 ms at 50 MHz.
 
-**Fix:**
-1. Generate a new 28-bit counter IP in Quartus (or widen the existing one).
-2. Update the declaration in `access_permission_wrapper.sv`:
-   ```sv
-   logic [27:0] twentyBitsCounter;
-   ```
-3. Update the compare:
-   ```sv
-   assign timeOut = (twentyBitsCounter == 28'd250_000_000);
-   ```
+**Fix applied:**
+A new 13-bit IP `thirteenBitsCtr` (`lpm_width = 13`) replaces `TwentyBitsCounter`. Since `access_permission_wrapper` runs on `clk1ms` (1 kHz), 5,000 cycles × 1 ms = **5 s**. 13 bits is the minimum width needed (2^13 = 8,192 > 5,000).
 
 ---
 
@@ -73,8 +65,10 @@ assign enter_access = enter_d && (switches == ACCESS_TRIGGER);
 
 ---
 
-## [LOW] 8. `done = 1` persists into S2 — `lock_validation.sv`
+## ~~[LOW] 8. `done = 1` persists into S2 — `lock_validation.sv`~~ **CONFIRMED INTENTIONAL**
 
-**Problem:** When the digit at position 9 is wrong the FSM enters S2, but `done` is still 1 (ctr has not changed). The very next `enter_d` in S2 immediately transitions to S3 with no chance for further entry.
+**Was:** When the 9th digit is wrong, the FSM enters S2. `done` becomes 1 at the next posedge (ctr 8→9). The 10th `enter_d` in S2 immediately goes to S3.
 
-**Fix:** Confirm whether this is the intended behaviour for a max-length wrong entry. If not, gate the S2 → S3 transition on `done` only after `srst` has cleared and a new attempt begins, or restructure the `done` check in S0.
+**Analysis (confirmed 2026-04-23):** This is correct behaviour. S2 means a wrong digit was already entered — S3 (error) is the only valid outcome. Waiting for `done` or `switches==1010` before asserting the error is the right design: it lets the user finish typing before the FSM signals failure, preventing spurious early-error signals. No fix needed.
+
+**Also confirmed correct:** The 10-digit all-correct path (done=1, eq=1 on the 10th press) correctly transitions S0 → S1. The `if(done)` branch takes priority over `end_code` and `switches==1010` in S0.

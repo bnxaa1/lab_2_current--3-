@@ -1,14 +1,7 @@
 module lock_validation(
-    input logic clk,
-    input logic resetN,
-    input logic srst,
-    input logic enter_al,
-    input logic done,
-    input logic [3:0] code,
-    input logic [3:0] switches,
-    output logic error,
-    output logic correct,
-    output logic enter_d,
+    input logic clk, done, resetN, srst,enter_al,
+    input logic [3:0] code, switches,
+    output logic error, correct, enter_d,
     output logic [2:0] state_regt
 );
 //** we should reset the counter before we run this again let both codes have the same srst
@@ -44,8 +37,12 @@ module lock_validation(
         case(state_reg)
             S0: begin // still correct so far
                 if(enter_d) begin
-                    if(done && eq)
-                        state_next = S1;
+                    if(done)
+                        if (eq)
+                            state_next = S1;
+                        else
+                            state_next = S3;
+                    
                     else if(end_code) begin
                         if(eq)
                             state_next = S1;

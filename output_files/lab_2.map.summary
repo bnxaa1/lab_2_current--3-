@@ -1,13 +1,13 @@
-Analysis & Synthesis Status : Successful - Mon Apr 13 12:51:48 2026
-Quartus Prime Version : 25.1std.0 Build 1129 10/21/2025 SC Lite Edition
+Analysis & Synthesis Status : Successful - Fri Apr 17 10:41:48 2026
+Quartus Prime Version : 23.1std.1 Build 993 05/14/2024 SC Lite Edition
 Revision Name : lab_2
-Top-level Entity Name : lock_validation
+Top-level Entity Name : lock_validation_wrapper
 Family : Cyclone V
 Logic utilization (in ALMs) : N/A
-Total registers : 13
-Total pins : 19
+Total registers : 17
+Total pins : 26
 Total virtual pins : 0
-Total block memory bits : 0
+Total block memory bits : 128
 Total DSP Blocks : 0
 Total HSSI RX PCSs : 0
 Total HSSI PMA RX Deserializers : 0

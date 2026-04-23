@@ -4,7 +4,7 @@ module lab_2(
 );
 
     logic [2:0] state_regt, access_state_p;
-    logic done, wren, srst, srst1, increment, timeOut, locked, enter_access;
+    logic done, wren, srst, srst1, increment, timeOut, locked, enter_access, clk1ms;
     logic [3:0] code, dataIn;
     logic [4:0] rStartingAddress, wStartingAddress;
     logic [1:0] S;
@@ -17,7 +17,7 @@ module lab_2(
     assign srst1 = 1'b0; // TODO: replace when a dedicated srst1 source is defined by the access-permission path
 
     codeStorage cs1(
-        .clk(clk),
+        .clk(clk1ms),
         .wren(wren),
         .ctrRst(srst),
         .clk_en(enter_d),
@@ -35,7 +35,7 @@ module lab_2(
         .enter(enter_access),
         .correct(correct),
         .error(error),
-        .clk(clk),
+        .clk(clk1ms),
         .srst1(srst1),
         .Err_LED(Err_LED),
         .srst(srst),
@@ -46,9 +46,12 @@ module lab_2(
         .state_p(access_state_p),
         .S(S)
     );
-
-    lock_validation lv1(
+    clock1 clk1(
         .clk(clk),
+        .clk_out(clk1ms)
+    );
+    lock_validation lv1(
+        .clk(clk1ms),
         .resetN(resetN),
         .srst(srst),
         .enter_al(enter_al),

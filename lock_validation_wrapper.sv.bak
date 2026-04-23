@@ -1,0 +1,68 @@
+module top_wrapper (
+    // Global signals
+    input  logic        clk,
+    input  logic        resetN,
+
+    // codeStorage inputs
+    input  logic        wren,
+    input  logic        ctrRst,
+    input  logic        clk_en,
+    input  logic [4:0]  rStartingAddress,
+    input  logic [4:0]  wStartingAddress,
+    input  logic [3:0]  dataIn,
+
+    // lock_validation inputs
+    input  logic        srst,
+    input  logic        enter_al,
+    input  logic [3:0]  switches,
+
+    // codeStorage outputs
+    output logic [3:0]  dataOut,
+
+    // lock_validation outputs
+    output logic        error,
+    output logic        correct,
+    output logic        enter_d,
+    output logic [2:0]  state_regt
+);
+
+    // Internal signals connecting the two modules
+    logic        done;       // codeStorage.done --> lock_validation.done
+    logic [3:0]  code;       // codeStorage.dataOut --> lock_validation.code
+
+    // Assign dataOut for top-level visibility (already driven by codeStorage)
+    assign dataOut = code;
+
+    // -------------------------------------------------------------------------
+    // Instance: codeStorage
+    // -------------------------------------------------------------------------
+    codeStorage u_codeStorage (
+        .clk              (clk),
+        .wren             (wren),
+        .ctrRst           (ctrRst),
+        .clk_en           (clk_en),
+        .rStartingAddress (rStartingAddress),
+        .wStartingAddress (wStartingAddress),
+        .dataIn           (dataIn),
+        .done             (done),
+        .dataOut          (code)
+    );
+
+    // -------------------------------------------------------------------------
+    // Instance: lock_validation
+    // -------------------------------------------------------------------------
+    lock_validation u_lock_validation (
+        .clk        (clk),
+        .done       (done),
+        .resetN     (resetN),
+        .srst       (srst),
+        .enter_al   (enter_al),
+        .code       (code),
+        .switches   (switches),
+        .error      (error),
+        .correct    (correct),
+        .enter_d    (enter_d),
+        .state_regt (state_regt)
+    );
+
+endmodule

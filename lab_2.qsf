@@ -39,7 +39,7 @@
 
 set_global_assignment -name FAMILY "Cyclone V"
 set_global_assignment -name DEVICE 5CSEMA5F31C6
-set_global_assignment -name TOP_LEVEL_ENTITY lock_validation
+set_global_assignment -name TOP_LEVEL_ENTITY lock_validation_wrapper
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 25.1STD.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "02:51:12  FEBRUARY 27, 2026"
 set_global_assignment -name LAST_QUARTUS_VERSION "25.1std.0 Lite Edition"
@@ -56,6 +56,22 @@ set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_location_assignment PIN_AF14 -to clk
+set_location_assignment PIN_V16 -to correct
+set_location_assignment PIN_AA14 -to enter_al
+set_location_assignment PIN_W16 -to error
+set_location_assignment PIN_AB12 -to srst
+set_location_assignment PIN_AD12 -to switches[3]
+set_location_assignment PIN_AD11 -to switches[2]
+set_location_assignment PIN_AF10 -to switches[1]
+set_location_assignment PIN_AF9 -to switches[0]
+set_location_assignment PIN_AA15 -to resetN
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name SYSTEMVERILOG_FILE clock1.sv
+set_global_assignment -name SYSTEMVERILOG_FILE change_password.sv
 set_global_assignment -name SYSTEMVERILOG_FILE lab_2.sv
 set_global_assignment -name SYSTEMVERILOG_FILE one_pulse_generator.sv
 set_global_assignment -name SYSTEMVERILOG_FILE access_permission.sv
@@ -69,9 +85,8 @@ set_global_assignment -name QIP_FILE counter.qip
 set_global_assignment -name MIF_FILE ramm.mif
 set_global_assignment -name QIP_FILE ThreeBitsCounter.qip
 set_global_assignment -name QIP_FILE TwentyBitsCounter.qip
+set_global_assignment -name QIP_FILE thirteenBitsCtr.qip
 set_global_assignment -name VECTOR_WAVEFORM_FILE Waveform5.vwf
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 set_global_assignment -name VECTOR_WAVEFORM_FILE Waveform6.vwf
+# set_global_assignment -name SYSTEMVERILOG_FILE lock_validation_wrapper.sv  # testing only
+set_global_assignment -name QIP_FILE sixteenbitsctr.qip

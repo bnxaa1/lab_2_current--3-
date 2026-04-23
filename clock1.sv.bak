@@ -1,0 +1,10 @@
+module clock1 (
+    input logic clk, srst, resetN, led_en,
+    output logic clk_out 
+)
+    SixteenBitsCounter ledCounter (
+        .clk(clk),
+        .srst(srst),
+        .enable(led_en),
+        .count()
+    );

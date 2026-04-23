@@ -5,13 +5,13 @@ module access_permission_wrapper(
     output logic [1:0] S
 );
 
-    logic [27:0] twentyBitsCounter;
+    logic [12:0] ThirteenBitsCounter;
     logic [2:0]  threeBitsCounter;
 
-    TwentyBitsCounter tbc20(
+    thirteenBitsCtr tbc13(
         .clock(clk),
-        .sclr(srst),
-        .q(twentyBitsCounter)
+        .sclr(timeout),
+        .q(ThirteenBitsCounter)
     );
 
     ThreeBitsCounter tbc3(
@@ -39,7 +39,8 @@ module access_permission_wrapper(
         .S(S)
     );
 
-    assign timeOut = (twentyBitsCounter == 28'd250_000_000);
+    // clk1ms runs at 1 kHz; 5 000 cycles = 5 s timeout
+    assign timeOut = (ThirteenBitsCounter == 13'd5_000); //maybe timeout for 1 cycle so I should reset it
 
     assign locked = (threeBitsCounter == 3'd4);
 endmodule

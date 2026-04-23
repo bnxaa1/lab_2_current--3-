@@ -3,7 +3,7 @@ module one_pulse_generator(
              output logic enter_d);
 				 
     //debounced one pulse signal
-	logic done_clk, st; //debounced one pulse enter signal, done counter signal, st to reset the counter
+	logic done_clk, st; //timeout counter signal, st to reset the counter
 	logic [3:0] ctr;
     typedef enum logic [2:0] {S0, S1, S2, S3, S4} state_e; // typedef: creates a new type, enum: gives a name to a set of values, logic [1:0]: 2-bit logic vector
     state_e state_reg, state_next; //state_e defines the possible values of state and next_state
@@ -46,7 +46,7 @@ module one_pulse_generator(
         endcase
     end
 	 
-    
+// clk is clk1ms (1 kHz); 15 cycles = 15 ms debounce window
     counter c1(.clock(clk), .sclr(st), .q(ctr), .clk_en(1'b1)); // instantiate the counter module
 	assign done_clk = &ctr;
 endmodule

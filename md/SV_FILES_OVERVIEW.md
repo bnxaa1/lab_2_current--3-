@@ -23,18 +23,42 @@ This separation is useful because it keeps each FSM or data-path block focused o
 According to `lab_2.qsf`, these SystemVerilog files are part of the active project:
 
 - `lab_2.sv`
+- `clock1.sv`
+- `leds.sv`
 - `one_pulse_generator.sv`
 - `access_permission.sv`
 - `access_permission_wrapper.sv`
 - `supervisor_requests.sv`
 - `codeStorage.sv`
 - `lock_validation.sv`
+- `change_password.sv`
 
 There are also additional `.sv` files under `first trial/` which look like earlier archived versions.
 
 ---
 
-## 1) `lab_2.sv`
+## 1) `clock1.sv`
+
+### What it does
+Divides the 50 MHz system clock (`clk`) down to a **1 kHz clock** (`clk_out`, period = 1 ms).
+
+### Main logic behind it
+Uses a 16-bit counter IP (`sixteenbitsctr`) that counts 0 → 49,999, resets on cycle 49,999 (`rst = (q == 16'd49999)`), and drives `clk_out = (q < 16'd25000)` — giving a clean 50 % duty-cycle 1 kHz output.
+
+### Why this file exists
+All FSMs and counters that need human-scale timing (debounce, timeout, lockout) run on `clk1ms` rather than the raw 50 MHz clock. This avoids the need for individually large counter IPs in each module.
+
+### Effects on the rest of the design
+- `one_pulse_generator`: 4-bit counter at `clk1ms` → 15 cycles × 1 ms = **15 ms debounce** (fixes issue #1)
+- `access_permission_wrapper`: timeout compares at 5,000 cycles × 1 ms = **5 s** (fixes issue #6)
+
+### Relationship to other files
+- **instantiated by** `lab_2.sv`
+- **uses** `sixteenbitsctr` IP
+
+---
+
+## 2) `lab_2.sv` (top-level)
 
 ### What it does
 This file is the **top-level integration module** for the input-conditioning and validation path.
@@ -297,6 +321,28 @@ So this file is likely the data-storage side of a larger password-management fea
 - in the current top-level wiring, it supplies `code` and `done` into `lock_validation.sv`
 - its `clk_en` is driven by `enter_d`, so the stored-code address advances once per debounced enter pulse
 - supports higher-level password entry or password update logic
+
+---
+
+## 8) `leds.sv`
+
+### What it does
+Provides the LED output driver for the system. Takes the raw `corr_led` and `err_led` signals from `access_permission` and drives physical LED outputs.
+
+### Main logic behind it
+Uses the 4-bit `counter` IP to generate an internal slow clock (`clk_slow`) from the system clock input:
+
+- Counter counts 0 → 13, resets on 14: `assign sclr = (q > 4'd12)` → **14-cycle period**
+- Output: `assign clk_slow = (q > 4'd6)` → high for cycles 7–13, low for 0–6 → **exact 50% duty cycle**
+- At `clk1ms` input: `clk_slow` period = 14 ms
+
+### Current state
+The slow clock generation is complete. The LED output logic (`corr_led_out`, `err_led_out`) is not yet implemented — pending decision on blinking vs. static behavior.
+
+### Relationship to other files
+- **uses** `counter` IP/module
+- consumes `corr_led` / `err_led` from `access_permission_wrapper` (via `lab_2.sv`)
+
 ---
 
 ## Design relationships summary
@@ -322,11 +368,14 @@ In terms of system intent, the flow is roughly:
 The project is organized around **functional responsibility**:
 
 - **top-level wiring** → `lab_2.sv`
+- **clock division** → `clock1.sv`
 - **signal conditioning** → `one_pulse_generator.sv`
 - **verification logic** → `lock_validation.sv`
 - **access wrapper / derived conditions** → `access_permission_wrapper.sv`
 - **system reaction / policy** → `access_permission.sv`
 - **supervisor request handling** → `supervisor_requests.sv`
+- **password change flow** → `change_password.sv`
+- **LED output driving** → `leds.sv`
 - **memory / sequence storage** → `codeStorage.sv`
 
 This is a good hardware-design pattern because it:
