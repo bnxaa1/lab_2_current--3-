@@ -8,15 +8,15 @@
 # must already exist in this directory (see md/MODELSIM_GUIDE.md Phase 1).
 
 # ── Compile Altera IP files (Verilog) ────────────────────────────
+# clock1 / sixteenbitsctr not needed: lock_validation_wrapper no longer
+# instantiates clock1 — the top level (lab_2.sv) owns that instance.
 vlog -work work counter.v
-vlog -work work sixteenbitsctr.v
 vlog -work work thirteenBitsCtr.v
 vlog -work work ThreeBitsCounter.v
 vlog -work work TwentyBitsCounter.v
 vlog -work work ram.v
 
 # ── Compile design files (SystemVerilog, dependency order) ───────
-vlog -sv -work work clock1.sv
 vlog -sv -work work one_pulse_generator.sv
 vlog -sv -work work codeStorage.sv
 vlog -sv -work work lock_validation.sv

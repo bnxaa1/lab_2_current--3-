@@ -100,10 +100,11 @@ Run these steps every time you change source files. Or just run `sim.do` (see se
 ### Step 9 — Compile Altera IP files (Verilog)
 
 Order does not matter between IPs but all must be compiled before the SV design files.
+`clock1` / `sixteenbitsctr` are **not needed** here — `lock_validation_wrapper` no longer
+instantiates `clock1`; the top level (`lab_2.sv`) owns that instance.
 
 ```tcl
 vlog -work work counter.v
-vlog -work work sixteenbitsctr.v
 vlog -work work thirteenBitsCtr.v
 vlog -work work ThreeBitsCounter.v
 vlog -work work TwentyBitsCounter.v
@@ -113,7 +114,6 @@ vlog -work work ram.v
 ### Step 10 — Compile design files (SystemVerilog, dependency order)
 
 ```tcl
-vlog -sv -work work clock1.sv
 vlog -sv -work work one_pulse_generator.sv
 vlog -sv -work work codeStorage.sv
 vlog -sv -work work lock_validation.sv
