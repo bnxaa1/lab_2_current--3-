@@ -9,7 +9,7 @@ z2
 cModel Technology
 Z0 dC:/Users/mahaz/Desktop/lab_2_current (3)
 vlpm_abs
-Z1 !s110 1776965473
+Z1 !s110 1777151416
 !i10b 1
 !s100 M8kaY>D?dDA9TgS<WX@dH2
 IIo>30jGZAi@C9CUM]3meM2
@@ -23,7 +23,7 @@ Z6 OV;L;10.5b;63
 r1
 !s85 0
 31
-Z7 !s108 1776965473.000000
+Z7 !s108 1777151416.000000
 Z8 !s107 C:/altera_lite/25.1std/quartus/eda/sim_lib/220model.v|
 Z9 !s90 -reportprogress|300|-work|lpm_ver|C:/altera_lite/25.1std/quartus/eda/sim_lib/220model.v|
 !i113 1

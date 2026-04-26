@@ -1,16 +1,16 @@
-module codeStorage (input logic clk, wren, ctrRst, clk_en,
-							input logic [4:0] rStartingAddress, wStartingAddress,
+module codeStorage (input logic clk, wren, rst_codeNum, clk_en,
+							input logic [5:0] rStartingAddress, wStartingAddress,
 							input logic [3:0]  dataIn,
 							output logic done,
 							output logic [3:0]  dataOut);
-				
-		logic [4:0] rdaddress, wraddress;
+
+		logic [5:0] rdaddress, wraddress;
 		logic [3:0] ctr;
-		assign done = (ctr == 4'b1001); // done when the code entered reach max = 9 digits 
-		assign rdaddress = {1'b0,ctr}+ rStartingAddress; // enable the ctr for 1 cycle
-		assign wraddress = {1'b0,ctr}+ wStartingAddress;
+		assign done = (ctr == 4'b1001); // done when the code entered reach max = 9 digits
+		assign rdaddress = rStartingAddress + {2'b00, ctr}; // enable the ctr for 1 cycle
+		assign wraddress = wStartingAddress + {2'b00, ctr};
 		ram Ram_Mem(.clock(clk),.data(dataIn),.rdaddress(rdaddress),.wraddress(wraddress),.wren(wren),.q(dataOut));
-		counter c2(.clock(clk), .sclr(ctrRst), .q(ctr), .clk_en(clk_en));
+		counter c2(.clock(clk), .sclr(rst_codeNum), .q(ctr), .clk_en(clk_en));
 		
 endmodule
 

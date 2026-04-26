@@ -34,8 +34,8 @@ on the Quartus Prime software download page.
 	(port
 		(pt 0 48)
 		(input)
-		(text "wraddress[4..0]" (rect 0 0 89 13)(font "Arial" (font_size 8)))
-		(text "wraddress[4..0]" (rect 4 36 77 47)(font "Arial" (font_size 8)))
+		(text "wraddress[5..0]" (rect 0 0 89 13)(font "Arial" (font_size 8)))
+		(text "wraddress[5..0]" (rect 4 36 77 47)(font "Arial" (font_size 8)))
 		(line (pt 0 48)(pt 112 48)(line_width 3))
 	)
 	(port
@@ -48,8 +48,8 @@ on the Quartus Prime software download page.
 	(port
 		(pt 0 88)
 		(input)
-		(text "rdaddress[4..0]" (rect 0 0 87 13)(font "Arial" (font_size 8)))
-		(text "rdaddress[4..0]" (rect 4 76 75 87)(font "Arial" (font_size 8)))
+		(text "rdaddress[5..0]" (rect 0 0 87 13)(font "Arial" (font_size 8)))
+		(text "rdaddress[5..0]" (rect 4 76 75 87)(font "Arial" (font_size 8)))
 		(line (pt 0 88)(pt 112 88)(line_width 3))
 	)
 	(port
@@ -67,7 +67,7 @@ on the Quartus Prime software download page.
 		(line (pt 256 88)(pt 192 88)(line_width 3))
 	)
 	(drawing
-		(text "128 Bit(s)" (rect 139 -8 227 167)(font "Arial" )(vertical))
+		(text "256 Bit(s)" (rect 139 -9 227 167)(font "Arial" )(vertical))
 		(text "RAM" (rect 148 -17 227 149)(font "Arial" )(vertical))
 		(text "Block Type: AUTO" (rect 40 127 151 263)(font "Arial" ))
 		(line (pt 128 24)(pt 168 24))

@@ -1,19 +1,76 @@
 module leds (
-    input  logic clk, rst, corr_led, err_led,
-    output logic corr_led_out, err_led_out
+    input  logic clk, rstN,
+    input  logic corr_in, err_in,   // 1-cycle input pulses from access_permission
+    output logic Corr_LED, Err_LED
 );
-    logic [3:0] q;
-    logic sclr, clk_slow;
+    logic [11:0] ctr;
+    logic [1:0]  blink_cnt_reg, blink_cnt_next;
+    logic        ctr_rst;
 
-    // 4-bit counter counts 0–14 then resets; period = 15 × clk
-    counter c1(
-        .clock  (clk),
-        .sclr   (sclr),
-        .clk_en (1'b1),
-        .q      (q)
-    );
+    typedef enum logic [1:0] {IDLE, CORR_HOLD, BLINK_ON, BLINK_OFF} state_e;
+    state_e state_reg, state_next;
 
-    assign sclr     = (q > 4'd12);   // reset at 13 → 14-cycle period (even)
-    assign clk_slow = (q > 4'd6);    // high for cycles 7–13, low for 0–6 → 50% duty
+    always_ff @(posedge clk, negedge rstN) begin
+        if (!rstN) begin
+            state_reg     <= IDLE;
+            blink_cnt_reg <= 2'd0;
+            ctr           <= 12'd0;
+        end else begin
+            state_reg     <= state_next;
+            blink_cnt_reg <= blink_cnt_next;
+            ctr           <= ctr_rst ? 12'd0 : ctr + 12'd1;
+        end
+    end
+
+    always_comb begin
+        state_next     = state_reg;
+        blink_cnt_next = blink_cnt_reg;
+        Corr_LED       = 1'b0;
+        Err_LED        = 1'b0;
+        ctr_rst        = 1'b0;
+
+        case (state_reg)
+            IDLE: begin
+                if (corr_in) begin
+                    ctr_rst    = 1'b1;
+                    state_next = CORR_HOLD;
+                end else if (err_in) begin
+                    ctr_rst        = 1'b1;
+                    blink_cnt_next = 2'd0;
+                    state_next     = BLINK_ON;
+                end
+            end
+
+            CORR_HOLD: begin
+                Corr_LED = 1'b1;
+                if (&ctr) begin   // 4 096 ms at 1 kHz — natural 12-bit overflow, no magic number
+                    ctr_rst    = 1'b1;
+                    state_next = IDLE;
+                end
+            end
+
+            BLINK_ON: begin
+                Err_LED = 1'b1;
+                if (ctr[8]) begin  // 256 ms at 1 kHz — bit 8 goes high, no magic number
+                    ctr_rst    = 1'b1;
+                    state_next = BLINK_OFF;
+                end
+            end
+
+            BLINK_OFF: begin
+                if (ctr[8]) begin  // 256 ms off
+                    ctr_rst = 1'b1;
+                    if (blink_cnt_reg == 2'd2) begin
+                        state_next = IDLE;
+                    end else begin
+                        blink_cnt_next = blink_cnt_reg + 2'd1;
+                        state_next     = BLINK_ON;
+                    end
+                end
+            end
+
+            default: state_next = IDLE;
+        endcase
+    end
 
 endmodule

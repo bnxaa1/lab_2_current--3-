@@ -9,7 +9,7 @@ z2
 cModel Technology
 Z0 dC:/Users/mahaz/Desktop/lab_2_current (3)
 va_graycounter
-Z1 !s110 1776965483
+Z1 !s110 1777151417
 !i10b 1
 !s100 dbSQenUhE^>zo5H5zAI>X2
 I9Fa:Z1z1]WcK:TieQYAQ_1
@@ -23,7 +23,7 @@ Z6 OV;L;10.5b;63
 r1
 !s85 0
 31
-Z7 !s108 1776965482.000000
+Z7 !s108 1777151417.000000
 Z8 !s107 C:/altera_lite/25.1std/quartus/eda/sim_lib/altera_mf.v|
 Z9 !s90 -reportprogress|300|-work|altera_mf_ver|C:/altera_lite/25.1std/quartus/eda/sim_lib/altera_mf.v|
 !i113 1
@@ -51,7 +51,7 @@ R9
 R10
 R11
 valt_aeq_s4
-R1
+Z12 !s110 1777151418
 !i10b 1
 !s100 nfDGPz6G]];6=ek5BS[=Q0
 INd289Z?H816N7E?NTg3mA1
@@ -93,7 +93,7 @@ R9
 R10
 R11
 valt_cal_av
-R1
+R12
 !i10b 1
 !s100 ^C<]19W[JmPeOfRV1aYfe2
 IU?0SVKGf6zbmlh]dY<0XH2
@@ -156,7 +156,7 @@ R9
 R10
 R11
 valt_cal_sv
-R1
+R12
 !i10b 1
 !s100 NWY`1V]UJOJm7<Z_c]dmf3
 IMK7_eGEnKC`W:[5bDB9bN3
@@ -177,7 +177,7 @@ R9
 R10
 R11
 valt_dfe
-R1
+R12
 !i10b 1
 !s100 SJmg^EL[d@d0icgB4c8=03
 IM6]RJ2OW0oXiUKknBOW@A2
@@ -198,7 +198,7 @@ R9
 R10
 R11
 valt_eyemon
-R1
+R12
 !i10b 1
 !s100 IWzHn^kU=IffnNQo@i<CW0
 I7cknKX3M>4nZNE9H:XOV50
@@ -219,7 +219,7 @@ R9
 R10
 R11
 valt_fault_injection
-Z12 !s110 1776965484
+R12
 !i10b 1
 !s100 `W:i5k:EQ256Tf1J7<o?_0
 I427TjCBeTd[P`jFSY:@RD2
@@ -1209,7 +1209,7 @@ R9
 R10
 R11
 vjtag_tap_controller
-R1
+R12
 !i10b 1
 !s100 TMjXJdE4iVa`CCcZ08RjH0
 I@Y[5bQihQRPgBTLd^B2:00
@@ -1512,7 +1512,7 @@ R9
 R10
 R11
 vsignal_gen
-R1
+R12
 !i10b 1
 !s100 0c[jE0:@22UFeoQiWHh1o2
 IOMSjYHYPLWzJZDVh:T8j^1

@@ -25,6 +25,10 @@ module tb_lock_validation_wrapper;
     logic        srst;
     logic        enter_al;
     logic [3:0]  switches;
+    logic [1:0]  rs;   // read region select
+    logic [1:0]  ws;   // write region select
+    logic        wren;
+    logic [3:0]  dataIn;
     logic        error;
     logic        correct;
 
@@ -35,6 +39,10 @@ module tb_lock_validation_wrapper;
         .srst     (srst),
         .enter_al (enter_al),
         .switches (switches),
+        .rs       (rs),
+        .ws       (ws),
+        .wren     (wren),
+        .dataIn   (dataIn),
         .error    (error),
         .correct  (correct)
     );
@@ -59,6 +67,10 @@ module tb_lock_validation_wrapper;
             srst     = 1'b0;
             enter_al = 1'b1;   // idle: active-low, not pressed
             switches = 4'd0;
+            rs       = 2'b00;  // read: user password region (addr 0)
+            ws       = 2'b00;  // write: user password region (addr 0)
+            wren     = 1'b0;   // read-only for validation tests
+            dataIn   = 4'd0;
             repeat (3) @(posedge clk);  // hold ≥ 1 clk cycle for counter sclr
             resetN = 1'b1;
             repeat (3) @(posedge clk);  // settle: ctr=0, RAM output valid
