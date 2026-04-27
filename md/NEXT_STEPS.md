@@ -13,24 +13,24 @@
 - **Alarm clear condition** — key removal (recommended) vs successful auth vs `resetN` only
 - **Wrong supervisor password → immediate alarm?** — affects S5 path in `access_permission.sv`
 
-### Ready to implement (design confirmed in `md/DESIGN_SPECS.md`)
-- **`access_permission_wrapper.sv` — expose new ports and wire supervisor signals**
-  - Add `input logic srst_supervisor` — driven by `exit_req` from `supervisor_requests`; OR into existing `srst_access` path or pass directly
-- **`lab_2.sv` — top-level integration**
-  - Instantiate `supervisor_requests`; connect `session_active`, `locked`, `enter_d`, `switches`
-  - Wire `exit_req` → `srst_access` on wrapper; wire `unlock_req` → wrapper `unlock_req` input
-  - Instantiate `change_password`; add 6 signal muxes + `lv_srst` (see `md/CHANGE_PASSWORD_PLAN.md`)
+### Blocked — awaiting design decisions
 - **Supervisor timeout alarm — add dedicated counter to `access_permission_wrapper.sv`**
   - Separate counter from user `thirteenBitsCtr`; resets on S0→S2 transition
   - Counter width and compare value depend on duration decision (see `md/DESIGN_SPECS.md` section 3)
   - Alarm output latches; clear condition and output type pending decisions
 
-### Pending — after `change_password.sv` is implemented
-- **`lab_2.sv` — wire `cp_done` to `supervisor_requests`**
-  - `assign cp_done = cp_complete | cp_fail;` from `change_password` outputs
-  - Cancel path: supervisor presses 1010 as first digit during ENTRY → `change_password` ERROR → `cp_fail` → `cp_done=1` → `supervisor_requests` → `NO_REQUEST` → supervisor can EXIT or choose again
+### Ready
+- **Testbench updates** — `tb_access_permission_wrapper.sv` needs new port connections for `session_active`, `enter_d`, `done`, `active_addr`, `cp_*` signals
+- **Input range validation — abort on invalid digit**
+  - Valid digits: `0–9` (`4'b0000`–`4'b1001`); terminator: `10` (`4'b1010`); values `11–15` (`4'b1011`–`4'b1111`) are invalid
+  - Applies to both normal user authentication (lock_validation / codeStorage path) and `change_password` ENTRY phase
+  - Design decision needed: abort silently (treat as no-press), abort with `Err_LED`, or abort and return to S0
+  - Affects: `lock_validation.sv` or `lock_validation_wrapper.sv` (gate `enter_d` on valid range), and `change_password.sv` ENTRY state
 
 ## Done
+- **`lab_2.sv` — full integration:** `supervisor_requests`, `change_password`, `leds` instantiated; `exit_req → srst_access`, `unlock_req`, `cp_done`, `is_supervisor`, `cp_active`, `cp_wren`, `target_addr`, `active_addr`, `enter_d`, `done` all wired; `Err_LED`/`Corr_LED` routed through `leds` FSM
+- **`lock_validation_wrapper.sv` — `done` exposed as output port**
+- **`access_permission_wrapper.sv` — `enter_d`, `done`, `active_addr` exposed as outputs; `cp_ctrRst`/`cp_srst_lv` wired to lvw1; address mux integrated**
 - **`access_permission.sv` — S3/S4 merge + `session_active` output:** S4 removed as reachable state; S3 now handles both locked and not-locked supervisor sessions via `input_cond[2]`; `session_active` output added; exit and unlock handled externally via `srst_access` and `unlock_req`; port list regrouped
 - **`supervisor_requests.sv` — full rewrite:** replaced `access_state[2:0]`/`cmd_request_in[2:0]` with `session_active`, `locked`, `enter_d`, `cp_done`, `switches`; output changed from `cmd_request[2:0]` bus to individual 1-bit signals `exit_req`, `unlock_req`, `change_user_req`, `change_super_req`; `UNLOCK_REQUEST` auto-clears to `NO_REQUEST` after 1 cycle (pulse); `CHANGE_USER/SUPER` wait for `cp_done` then return to `NO_REQUEST`; cancel path via early 1010 press → `cp_fail` → `cp_done`
 - **`access_permission_wrapper.sv` — `srst_access` added to timeout counter reset:** `rst_timeoutCtr = timeOut | ap_rst_timeoutCtr | srst_access`; session exit now also resets the 13-bit timeout counter

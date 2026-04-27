@@ -106,7 +106,7 @@ This document describes every user interaction path through the system, the expe
 
 | Problem | Resolution |
 |---|---|
-| Supervisor password region was at addr 10; pointed to zeros | Moved to addr 20–24 in `ramm.mif`; `rStartingAddress = key ? 5'b10100 : 5'b00000` |
+| Supervisor password region was at addr 20; moved to addr 32 for clean MSB encoding | `ramm.mif` addr 32–36 holds `2,0,2,6,1010`; `rStartingAddress = {key, active_bit, 4'b0000}` so addr[5]=key, addr[4]=region select |
 | `key` dropping briefly during supervisor digit entry would abort S2 | `enter_supervisor_digit` task in testbench forces `key_raw=1` before, during, and after every press/release cycle |
 | S3 and S4 were separate states requiring locked check on S2 exit | Merged into single S3; `locked` discriminates behaviour inside S3 directly via `input_cond[2]` |
 | S3/S4 were dead-end states — no exit possible except `resetN` | Exit handled externally: `exit_req` from `supervisor_requests` drives `srst_access`; session clears cleanly |
@@ -158,7 +158,130 @@ After reaching S3, the supervisor selects a command using a single digit press +
 
 ---
 
-## 7. Supervisor Cancel Password Change
+## 7. Change Password
+
+### Memory layout — double-buffer address-swap
+
+The RAM is 64 words × 4 bits (256 bits total, 6-bit address). The address space is split into 4 regions of 16 slots each, encoded in `addr[5:4]`:
+
+| addr[5:4] | Region | Addresses | Identity |
+|---|---|---|---|
+| `2'b00` | User region A | 0–15 | User (default active) |
+| `2'b01` | User region B | 16–31 | User (swap target) |
+| `2'b10` | Supervisor region A | 32–47 | Supervisor (default active) |
+| `2'b11` | Supervisor region B | 48–63 | Supervisor (swap target) |
+
+**Rationale for double-buffer over copy:**
+A COPY phase (write new password over active region) risks partial corruption if power is lost mid-copy — the active password ends up half-new, half-old and the system becomes inaccessible. The address-swap approach never touches the active region during entry or verification. The new password is written entirely to the inactive region first. On verified success, a single register bit flip makes it the active region. This is atomic — no mid-operation window.
+
+**Address derivation:**
+- Active region: `rStartingAddress = {key, key ? super_active : user_active, 4'b0000}`
+  - `key` (bit 5) selects user vs supervisor
+  - `user_active` / `super_active` (bit 4) selects A (0) or B (1)
+- Inactive region: `target_addr = active_addr ^ 6'b010000` — flip bit 4 only
+- Both regions hold up to 10 digits (counter 0–9 ≤ 15); no overflow into adjacent region
+
+**Swap registers** (`user_active`, `super_active`) live in `access_permission_wrapper`. Both initialise to 0 (region A, matching `.mif`). On `cp_complete`, the relevant bit flips.
+
+---
+
+### FSM — 5 states (reduced from original 8)
+
+```
+IDLE → ENTRY → VERIFY → DONE / ERROR
+```
+
+**Removed states and rationale:**
+- `ENTRY_RST` removed: reset signals (`ctrRst`, `srst_lv`) became **Mealy outputs** on the IDLE→ENTRY transition. No dedicated cycle needed — they fire on the same cycle `start` is detected.
+- `VERIFY_RST` removed: same — `ctrRst` and `srst_lv` fire as Mealy outputs on the ENTRY→VERIFY transition (the terminator/done cycle).
+- `VERIFY_WAIT` removed: originally inserted to absorb the 1-cycle RAM registered-output latency after resetting the read address. Eliminated because `lock_validation` only makes a comparison when `enter_d` fires. The first keypress in VERIFY is always ≥ 15 ms (debounce) after VERIFY starts — the RAM output settles in 1 cycle, so the natural delay from waiting for the first keypress is always sufficient.
+- `COPY_PREP`, `COPY_WAIT1`, `COPY_WAIT2`, `COPY` removed entirely: the address-swap approach replaces the copy phase.
+
+**LPM counter note on Mealy resets:** when the terminator press fires both `ctrRst=1` (from Mealy) and `clk_en_override=1` (enter_d active) simultaneously, LPM `sclr` has priority over `clk_en` — counter resets to 0, not advances. Correct behaviour.
+
+---
+
+### State details
+
+| State | Key outputs | Condition to exit |
+|---|---|---|
+| IDLE | `cp_active=0` | `start=1` → assert `ctrRst`, `srst_lv` (Mealy), → ENTRY |
+| ENTRY | `srst_lv=1`, `wren=1`, `dataIn=switches` | `enter_d && (switches==1010 \| done)` → assert `ctrRst`, `srst_lv` (Mealy), → VERIFY |
+| VERIFY | — | `lv_correct` → DONE; `lv_error` → ERROR |
+| DONE | `cp_complete=1` (1 cycle) | → IDLE |
+| ERROR | `cp_fail=1` (1 cycle) | → IDLE |
+
+**`wren=1` continuously in ENTRY (not gated by `enter_d`):**
+The Altera altsyncram write port has registered inputs — `wren`, `wraddress`, and `data` are latched at the rising clock edge. If `wren=1` were gated by `enter_d` (1-cycle pulse), the write would complete one cycle after `enter_d` goes low, relying on `switches` being stable at that later edge. Instead, `wren=1` always in ENTRY: the RAM continuously writes the current `switches` value to the current counter address. The counter only advances on `enter_d`. The last write before counter advance captures the confirmed digit exactly at the `enter_d` clock edge — no reliance on post-edge stability.
+
+**`srst_lv=1` throughout ENTRY:**
+Prevents `lock_validation` from reading the inactive RAM region while it is being written to. Simultaneous read and write on the same address with `READ_DURING_WRITE = DONT_CARE` produces undefined output. Holding `lock_validation` in reset eliminates this conflict entirely.
+
+**`cp_complete` vs `cp_fail`:**
+Both release `supervisor_requests` from the CHANGE state (`cp_done = cp_complete | cp_fail`). They differ in effect: `cp_complete` also triggers the address bit flip in the wrapper. Using `cp_complete` for failures would incorrectly swap the active region to a region containing a bad password.
+
+**`is_supervisor`:**
+Driven directly from `change_super_req` (level signal, stable throughout the change session). On `cp_complete`, the wrapper checks `is_supervisor` to decide whether to flip `user_active` or `super_active`.
+
+**`start` is a level signal, not a pulse:**
+`change_user_req` and `change_super_req` are level outputs of `supervisor_requests` (high while in CHANGE state). `start = change_user_req | change_super_req`. `change_password` only checks `start` in IDLE — once it leaves IDLE it never re-enters until DONE or ERROR, so the held-high level causes no re-triggering.
+
+---
+
+### Scenario 1 — Happy path
+
+1. Supervisor in S3 presses digit `1` → `change_user_req=1` → `start=1`
+2. IDLE detects `start`: Mealy asserts `ctrRst=1`, `srst_lv=1`; → ENTRY (ctr=0, lock_validation reset)
+3. ENTRY: supervisor types new password e.g. `5,7,3,1010` — each digit written to inactive region (e.g. addr 16–19 for user region B). `srst_lv=1` keeps lock_validation deaf; `wren=1` armed continuously
+4. Terminator `1010` detected: Mealy asserts `ctrRst=1`, `srst_lv=1`; → VERIFY (ctr=0, lock_validation reset)
+5. VERIFY: supervisor re-enters `5,7,3,1010` — `lock_validation` reads from inactive region and compares; `lv_correct=1`
+6. DONE: `cp_complete=1` (1 cycle) → wrapper flips `user_active` bit → inactive region (addr 16) becomes the new active user password region
+7. `supervisor_requests` sees `cp_done=1` → NO_REQUEST; supervisor can EXIT or issue another command
+
+---
+
+### Scenario 2 — Verification mismatch
+
+1. ENTRY: supervisor types `5,7,3,1010` → written to inactive region
+2. VERIFY: supervisor re-enters `5,7,9,1010` — mismatch on digit 3 → `lv_error=1`
+3. ERROR: `cp_fail=1` → `supervisor_requests` → NO_REQUEST
+4. **Active region untouched throughout.** Old password remains valid
+5. Inactive region holds the failed entry — harmless; overwritten on next change attempt
+
+---
+
+### Scenario 3 — Cancel (press 1010 immediately)
+
+1. ENTRY: supervisor presses `1010` as the very first digit — only the end-marker is written to inactive region at offset 0
+2. Mealy transition fires → VERIFY with ctr=0
+3. VERIFY: supervisor types any real digit sequence → lock_validation compares against a region containing only `1010` at position 0 → immediate `lv_error`
+4. ERROR: `cp_fail=1` → NO_REQUEST; active region never touched
+
+---
+
+### Scenario 4 — Max digits reached
+
+1. ENTRY: supervisor enters 9 digits without pressing `1010` — `done=1` fires (codeStorage `ctr==9`)
+2. Mealy transition fires on the 9th press (when `done=1`) → VERIFY
+3. Continues normally; supervisor must re-enter the same 9 digits in VERIFY
+
+---
+
+### Edge cases handled
+
+| Problem | Resolution |
+|---|---|
+| Power failure during COPY would corrupt active password | COPY phase eliminated; address-swap is atomic (single register flip) |
+| COPY_WAIT and VERIFY_RST states added unnecessary latency | Removed; Mealy resets fire on the transition cycle itself; VERIFY_WAIT eliminated by natural keypress delay |
+| `wren` gated by `enter_d` risks missing digit if switches changes after pulse | `wren=1` continuously in ENTRY; RAM writes current switches on every cycle; last write before counter advance is the confirmed digit |
+| lock_validation could read inactive region during ENTRY (read-during-write undefined) | `srst_lv=1` throughout ENTRY holds lock_validation in reset; no reads from inactive region during writes |
+| `cp_complete` firing on failure would swap region to a bad password | Separate `cp_fail` signal releases `supervisor_requests` without triggering the address swap |
+| `start` held high by `supervisor_requests` could re-trigger `change_password` | `change_password` only checks `start` in IDLE; once in ENTRY or later, `start` is ignored |
+| `ctrRst` and `clk_en_override` simultaneous on terminator press | LPM `sclr` has priority over `clk_en`; counter resets to 0, does not advance |
+
+---
+
+## 8. Supervisor Cancel Password Change
 
 ### Flow
 1. Supervisor selects CHANGE_USER or CHANGE_SUPER → `change_password.sv` starts.
@@ -178,7 +301,7 @@ After reaching S3, the supervisor selects a command using a single digit press +
 | Wrong password / error | `Err_LED` blinks 3× | 3 × (250 ms ON + 250 ms OFF) = 1 500 ms total |
 
 Both outputs latch the 1-cycle pulse from `access_permission` (S6 and S5 respectively).
-Implementation: FSM in `leds.sv` with 12-bit cycle counter at `clk1ms`. Status: **pending**.
+Implementation: FSM in `leds.sv` with a single 12-bit cycle counter at `clk1ms`. No magic number comparisons — `ctr[8]` naturally goes high after 256 cycles (≈250 ms) for blink timing; `&ctr` (all bits 1) fires after 4 096 cycles (≈4 s) for correct hold. States: `IDLE → CORR_HOLD` for correct; `IDLE → BLINK_ON → BLINK_OFF` (×3) for error. `blink_cnt_reg` (2-bit) tracks completed blink pairs.
 
 ---
 
@@ -205,3 +328,16 @@ If a key is inserted but the supervisor does not complete authentication within 
 | `cp_done` | change_password → supervisor_requests | Password change completed or aborted |
 | `rst_failureCtr` | wrapper external input | Clears `ThreeBitsCounter`; driven by `unlock_req \| ap_rst_failureCtr` |
 | `srst_access` | wrapper external input | Sync reset: AP FSM, lock_validation, codeStorage, timeout counter |
+| `cp_complete` | change_password → wrapper | Password verified; triggers `user_active`/`super_active` bit flip (address swap) |
+| `cp_fail` | change_password → supervisor_requests (via cp_done) | Password mismatch or cancel; releases supervisor_requests to NO_REQUEST without swapping |
+| `cp_done` | lab_2 (combinatorial) | `cp_complete \| cp_fail`; releases supervisor_requests from CHANGE state |
+| `cp_active` | change_password → wrapper | Overrides `rStartingAddress`/`wStartingAddress` to `target_addr` during change |
+| `target_addr` | change_password → wrapper | Inactive region address: `active_addr ^ 6'b010000` (bit 4 flipped) |
+| `active_addr` | wrapper → change_password | Pre-mux active region start: `{key, active_bit, 4'b0000}` |
+| `is_supervisor` | lab_2 → wrapper | `change_super_req`; tells wrapper which register to flip on `cp_complete` |
+| `cp_ctrRst` | change_password → wrapper → lvw | Mealy reset on IDLE→ENTRY and ENTRY→VERIFY; resets codeStorage counter only |
+| `cp_srst_lv` | change_password → wrapper → lvw | Mealy reset on IDLE→ENTRY and ENTRY→VERIFY; resets lock_validation FSM only |
+| `done` | lock_validation_wrapper → wrapper → lab_2 | codeStorage counter at 9 (max 10 digits entered); guards ENTRY exit |
+| `enter_d` | wrapper → lab_2 | Gated debounced keypress; shared by supervisor_requests and change_password |
+| `user_active` | wrapper internal | 1-bit register; 0=region A active, 1=region B active; flipped on cp_complete for user |
+| `super_active` | wrapper internal | 1-bit register; 0=region A active, 1=region B active; flipped on cp_complete for supervisor |

@@ -9,7 +9,7 @@ z2
 cModel Technology
 Z0 dC:/Users/mahaz/Desktop/lab_2_current (3)
 vlpm_abs
-Z1 !s110 1777151416
+Z1 !s110 1777274669
 !i10b 1
 !s100 M8kaY>D?dDA9TgS<WX@dH2
 IIo>30jGZAi@C9CUM]3meM2
@@ -23,7 +23,7 @@ Z6 OV;L;10.5b;63
 r1
 !s85 0
 31
-Z7 !s108 1777151416.000000
+Z7 !s108 1777274668.000000
 Z8 !s107 C:/altera_lite/25.1std/quartus/eda/sim_lib/220model.v|
 Z9 !s90 -reportprogress|300|-work|lpm_ver|C:/altera_lite/25.1std/quartus/eda/sim_lib/220model.v|
 !i113 1
@@ -51,7 +51,7 @@ R9
 R10
 R11
 vlpm_and
-R1
+Z12 !s110 1777274668
 !i10b 1
 !s100 =VzM;OhZJQ@Wjl;2UNDFd0
 Ih:6H5;PREKTR?zHfSCSXn0
@@ -93,7 +93,7 @@ R9
 R10
 R11
 vlpm_bustri
-R1
+R12
 !i10b 1
 !s100 J0ek53f5aGEe08O]9M7g41
 IA^lC4AR:SY`Zm9;b[5?LS2
@@ -114,7 +114,7 @@ R9
 R10
 R11
 vlpm_clshift
-R1
+R12
 !i10b 1
 !s100 1z9OShRC_P==1noOD8AT40
 Iei^ecO7PVc_WnaBJREXRd0
@@ -156,7 +156,7 @@ R9
 R10
 R11
 vlpm_constant
-R1
+R12
 !i10b 1
 !s100 FkMf<gh?_E[^916k78`m>1
 IWPj=bWn3oHIh;z]SmGnQH0
@@ -198,7 +198,7 @@ R9
 R10
 R11
 vlpm_decode
-R1
+R12
 !i10b 1
 !s100 9gcEgnXo<S5MFjD`]mj9V3
 Iih:4eJFN@:60f5[W4ZaCM0
@@ -219,7 +219,7 @@ R9
 R10
 R11
 vLPM_DEVICE_FAMILIES
-R1
+R12
 !i10b 1
 !s100 Vmk]JQUO8I;QjWc9g7CYA2
 IKPXCV2?mJ2R?>:Ug;L`7j1
@@ -388,7 +388,7 @@ R9
 R10
 R11
 vLPM_HINT_EVALUATION
-R1
+R12
 !i10b 1
 !s100 `WKMS]SM@JbIe0gCi<3f82
 I<o18GM2VLOo<PanJX6W1O3
@@ -431,7 +431,7 @@ R9
 R10
 R11
 vlpm_inv
-R1
+R12
 !i10b 1
 !s100 ^?DV;oC5m>1zlEkCWIQzM1
 IzQdEjL2LQB??Ui^=M6aHc1
@@ -473,7 +473,7 @@ R9
 R10
 R11
 vLPM_MEMORY_INITIALIZATION
-R1
+R12
 !i10b 1
 !s100 DR_SV_J4fzH0gTOLESO6;1
 IT^Pfd9d]7JBSWF7oz`IeE3
@@ -516,7 +516,7 @@ R9
 R10
 R11
 vlpm_mux
-R1
+R12
 !i10b 1
 !s100 27TaUnFLk_F<gH`najTXL3
 I8o24hDL<L:a=U=XW_Wo0e2
@@ -537,7 +537,7 @@ R9
 R10
 R11
 vlpm_or
-R1
+R12
 !i10b 1
 !s100 PVk12KKE0fG4m[5a;LJV22
 I3?SkXV;bWTQ_jHzgCZBD23
@@ -684,7 +684,7 @@ R9
 R10
 R11
 vlpm_xor
-R1
+R12
 !i10b 1
 !s100 5BXY01B<ogg>d2@mk^Kmo0
 IajIHA>I^VUA[U<PfNMMaj0

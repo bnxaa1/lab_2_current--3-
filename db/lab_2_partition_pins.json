@@ -4,22 +4,6 @@
 			"name" : "Top",
 			"pins" : [
 				{
-					"name" : "dataOut[0]",
-					"strict" : false
-				},
-				{
-					"name" : "dataOut[1]",
-					"strict" : false
-				},
-				{
-					"name" : "dataOut[2]",
-					"strict" : false
-				},
-				{
-					"name" : "dataOut[3]",
-					"strict" : false
-				},
-				{
 					"name" : "error",
 					"strict" : false
 				},
@@ -28,63 +12,51 @@
 					"strict" : false
 				},
 				{
-					"name" : "enter_d",
+					"name" : "Err_LED",
 					"strict" : false
 				},
 				{
-					"name" : "state_regt[0]",
+					"name" : "Corr_LED",
 					"strict" : false
 				},
 				{
-					"name" : "state_regt[1]",
+					"name" : "cols[0]",
 					"strict" : false
 				},
 				{
-					"name" : "clk",
+					"name" : "cols[1]",
 					"strict" : false
 				},
 				{
-					"name" : "dataIn[0]",
+					"name" : "cols[2]",
 					"strict" : false
 				},
 				{
-					"name" : "S[0]",
+					"name" : "cols[3]",
 					"strict" : false
 				},
 				{
-					"name" : "S[1]",
+					"name" : "rows[0]",
 					"strict" : false
 				},
 				{
-					"name" : "dataIn[1]",
+					"name" : "rows[1]",
 					"strict" : false
 				},
 				{
-					"name" : "dataIn[2]",
+					"name" : "rows[2]",
 					"strict" : false
 				},
 				{
-					"name" : "dataIn[3]",
+					"name" : "rows[3]",
 					"strict" : false
 				},
 				{
-					"name" : "srst",
+					"name" : "key",
 					"strict" : false
 				},
 				{
-					"name" : "switches[3]",
-					"strict" : false
-				},
-				{
-					"name" : "switches[0]",
-					"strict" : false
-				},
-				{
-					"name" : "switches[1]",
-					"strict" : false
-				},
-				{
-					"name" : "switches[2]",
+					"name" : "srst_access",
 					"strict" : false
 				},
 				{
@@ -92,15 +64,7 @@
 					"strict" : false
 				},
 				{
-					"name" : "enter_al",
-					"strict" : false
-				},
-				{
-					"name" : "ctrRst",
-					"strict" : false
-				},
-				{
-					"name" : "clk_en",
+					"name" : "clk",
 					"strict" : false
 				}
 			]

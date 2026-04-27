@@ -9,8 +9,12 @@ module access_permission_wrapper(
     input  logic        unlock_req,          // supervisor unlock pulse → clears ThreeBitsCounter
     input  logic        cp_complete,         // password change verified → flip active region pointer
     input  logic        is_supervisor,       // 1 if supervisor password was changed, 0 if user
-    input  logic        wren,         // write enable for change_password path (0 until integrated)
-    input  logic [3:0]  dataIn,       // write data  for change_password path (0 until integrated)
+    input  logic        cp_active,           // change_password running → override rStartingAddress/wStartingAddress
+    input  logic        cp_ctrRst,           // change_password counter reset → codeStorage only
+    input  logic        cp_srst_lv,          // change_password FSM reset → lock_validation only
+    input  logic        wren,         // write enable for change_password path
+    input  logic [3:0]  dataIn,       // write data  for change_password path
+    input  logic [5:0]  target_addr,         // inactive region address from change_password
     output logic        Err_LED,
     output logic        rst_lv,       // resets lock_validation FSM + codeStorage counter
     output logic        Corr_LED,
@@ -20,15 +24,18 @@ module access_permission_wrapper(
     output logic        correct,
     output logic        error,
     output logic [2:0]  state_p,
-    output logic        session_active
+    output logic        session_active,
+    output logic        enter_d,          // gated debounced keypress; used by supervisor_requests and change_password
+    output logic        done,             // codeStorage counter at 9; used by change_password
+    output logic [5:0]  active_addr       // current active region start; used by change_password to compute inactive
 );
 
     logic [12:0] ThirteenBitsCounter;
     logic [2:0]  threeBitsCounter;
     logic [1:0]  S;                           // region select from access_permission (reserved, unused for addressing)
-    logic [5:0]  rStartingAddress, wStartingAddress;
+    logic [5:0]  rStartingAddress, wStartingAddress, normal_rAddr;
     logic        user_active, super_active; // 0=region A, 1=region B; flipped on cp_complete
-    logic        enter_d, enter_access;
+    logic        enter_access;
     logic        rst_timeoutCtr;              // sclr for the 13-bit timeout counter
     logic        ap_rst_failureCtr;          // rst_failureCtr from access_permission (user correct path)
     logic        ap_rst_timeoutCtr;          // rst_timeoutCtr from access_permission (fires on S0→S1 only)
@@ -41,7 +48,10 @@ module access_permission_wrapper(
     //   key=0  →  user region A/B   (addr[5:4]=2'b00 or 2'b01, selected by user_active)
     //   key=1  →  super region A/B  (addr[5:4]=2'b10 or 2'b11, selected by super_active)
     // bit 4 is the swap bit — flipped by cp_complete via user_active/super_active registers
-    assign rStartingAddress = {key, key ? super_active : user_active, 4'b0000};
+    // cp_active overrides to inactive region (target_addr) during password change
+    assign normal_rAddr     = {key, key ? super_active : user_active, 4'b0000};
+    assign active_addr      = normal_rAddr; // pre-mux active region address exposed for change_password
+    assign rStartingAddress = cp_active ? target_addr : normal_rAddr;
 
     always_ff @(posedge clk, negedge resetN) begin
         if (!resetN) begin
@@ -53,9 +63,8 @@ module access_permission_wrapper(
         end
     end
 
-    // Write address tracks read address for now (wren=0 until change_password is integrated).
-    // supervisor_requests will drive wStartingAddress separately in a later phase.
-    assign wStartingAddress = rStartingAddress;
+    // Write address follows read address during normal auth; overridden to target_addr during change_password
+    assign wStartingAddress = cp_active ? target_addr : rStartingAddress;
 
     // ── Timeout and lock thresholds ───────────────────────────────────────────
     assign timeOut       = (ThirteenBitsCounter == 13'd5_000); // 5 s @ 1 kHz
@@ -118,8 +127,11 @@ module access_permission_wrapper(
         .dataIn           (dataIn),
         .locked           (locked),
         .key              (key),
+        .cp_ctrRst        (cp_ctrRst),
+        .cp_srst_lv       (cp_srst_lv),
         .error            (error),
         .correct          (correct),
+        .done             (done),
         .enter_d          (enter_d)
     );
 

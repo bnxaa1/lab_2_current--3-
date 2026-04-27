@@ -10,7 +10,7 @@ module keypad_interface (
     inout  logic [3:0]  cols,      // GPIO_0[35:32]
     inout  logic [3:0]  rows,      // GPIO_0[31:28]
     output logic [3:0]  pass,
-    output logic        enter_p      // active-low, mirrors KEY[0] behaviour
+    output logic        Enter      // active-low, mirrors KEY[0] behaviour
 );
 
     // -------------------------------------------------------------------------

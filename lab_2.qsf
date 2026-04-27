@@ -39,7 +39,7 @@
 
 set_global_assignment -name FAMILY "Cyclone V"
 set_global_assignment -name DEVICE 5CSEMA5F31C6
-set_global_assignment -name TOP_LEVEL_ENTITY lock_validation_wrapper
+set_global_assignment -name TOP_LEVEL_ENTITY lab_2
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 25.1STD.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "02:51:12  FEBRUARY 27, 2026"
 set_global_assignment -name LAST_QUARTUS_VERSION "25.1std.0 Lite Edition"
@@ -66,10 +66,13 @@ set_location_assignment PIN_AD11 -to switches[2]
 set_location_assignment PIN_AF10 -to switches[1]
 set_location_assignment PIN_AF9 -to switches[0]
 set_location_assignment PIN_AA15 -to resetN
+# set_global_assignment -name SYSTEMVERILOG_FILE lock_validation_wrapper.sv  # testing only
+
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name VERILOG_FILE DE1_SoC_golden_top.v
 set_global_assignment -name SYSTEMVERILOG_FILE clock1.sv
 set_global_assignment -name SYSTEMVERILOG_FILE change_password.sv
 set_global_assignment -name SYSTEMVERILOG_FILE lab_2.sv
@@ -88,5 +91,5 @@ set_global_assignment -name QIP_FILE TwentyBitsCounter.qip
 set_global_assignment -name QIP_FILE thirteenBitsCtr.qip
 set_global_assignment -name VECTOR_WAVEFORM_FILE Waveform5.vwf
 set_global_assignment -name VECTOR_WAVEFORM_FILE Waveform6.vwf
-# set_global_assignment -name SYSTEMVERILOG_FILE lock_validation_wrapper.sv  # testing only
 set_global_assignment -name QIP_FILE sixteenbitsctr.qip
+set_global_assignment -name BDF_FILE Block1.bdf

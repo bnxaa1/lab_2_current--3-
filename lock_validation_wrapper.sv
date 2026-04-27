@@ -5,17 +5,19 @@ module lock_validation_wrapper (
     input  logic       enter_al,
     input  logic       locked,       // system locked after 4 failures
     input  logic       key,          // supervisor key present
+    input  logic       cp_ctrRst,    // change_password counter reset → codeStorage only
+    input  logic       cp_srst_lv,   // change_password FSM reset → lock_validation only
     input  logic [3:0] switches,
-    input  logic [5:0] rStartingAddress,  // pre-computed by parent (based on key)
-    input  logic [5:0] wStartingAddress,  // pre-computed by parent (based on supervisor_requests later)
+    input  logic [5:0] rStartingAddress,  // pre-computed by parent (based on key and active region)
+    input  logic [5:0] wStartingAddress,  // pre-computed by parent; target_addr when cp_active
     input  logic       wren,
     input  logic [3:0] dataIn,
     output logic       error,
     output logic       correct,
+    output logic       done,              // codeStorage counter at 9; used by change_password
     output logic       enter_d            // gated debounced pulse; blocked when locked && !key
 );
 
-    logic        done;
     logic        rst_codeNum;
     logic [3:0]  code;
     logic        enter_d_raw;             // raw debounced pulse from lock_validation, before lock gate
@@ -26,7 +28,7 @@ module lock_validation_wrapper (
     // one full clk cycle for the counter to actually clear.
     // lock_validation resets immediately (async negedge resetN), so a brief mismatch
     // window exists, but enter_d = 0 during reset prevents any ctr advancement.
-    assign rst_codeNum = rst_lv || !resetN;
+    assign rst_codeNum = rst_lv || !resetN || cp_ctrRst; // cp_ctrRst resets counter only (not lock_validation FSM)
 
     // Block enter when system is locked and no supervisor key — prevents spurious
     // codeStorage counter advances and lock_validation FSM transitions while locked.
@@ -49,7 +51,7 @@ module lock_validation_wrapper (
         .clk        (clk),
         .done       (done),
         .resetN     (resetN),
-        .srst       (rst_lv | (locked && !key)),  // hold FSM in S0 when locked and no supervisor key
+        .srst       (rst_lv | (locked && !key) | cp_srst_lv),  // hold FSM in S0 when locked and no supervisor key; cp_srst_lv holds it during ENTRY
         .enter_al   (enter_al),
         .code       (code),
         .switches   (switches),
