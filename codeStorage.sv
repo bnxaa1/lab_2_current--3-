@@ -10,7 +10,7 @@ module codeStorage (input logic clk, wren, rst_codeNum, clk_en,
 		assign rdaddress = rStartingAddress + {2'b00, ctr}; // enable the ctr for 1 cycle
 		assign wraddress = wStartingAddress + {2'b00, ctr};
 		ram Ram_Mem(.clock(clk),.data(dataIn),.rdaddress(rdaddress),.wraddress(wraddress),.wren(wren),.q(dataOut));
-		counter c2(.clock(clk), .sclr(rst_codeNum), .q(ctr), .clk_en(clk_en));
+		counter c2(.clock(clk), .sclr(rst_codeNum), .q(ctr), .cnt_en(clk_en));
 		
 endmodule
 

@@ -15,7 +15,8 @@ module lock_validation_wrapper (
     output logic       error,
     output logic       correct,
     output logic       done,              // codeStorage counter at 9; used by change_password
-    output logic       enter_d            // gated debounced pulse; blocked when locked && !key
+    output logic       enter_d,          // gated debounced pulse; blocked when locked && !key
+    output logic [3:0] dbg_code          // RAM dataOut; exposed for FPGA debug display
 );
 
     logic        rst_codeNum;
@@ -29,6 +30,7 @@ module lock_validation_wrapper (
     // lock_validation resets immediately (async negedge resetN), so a brief mismatch
     // window exists, but enter_d = 0 during reset prevents any ctr advancement.
     assign rst_codeNum = rst_lv || !resetN || cp_ctrRst; // cp_ctrRst resets counter only (not lock_validation FSM)
+    assign dbg_code    = code;
 
     // Block enter when system is locked and no supervisor key — prevents spurious
     // codeStorage counter advances and lock_validation FSM transitions while locked.

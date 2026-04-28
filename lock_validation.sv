@@ -18,7 +18,7 @@ module lock_validation(
 
     assign state_regt = state_reg;
     assign eq = (code == switches);
-    assign end_code = (code == 4'b1010);
+    assign end_code = (code == 4'b1101);
 
     always_ff @(posedge clk, negedge resetN) begin
         if(!resetN)
@@ -49,7 +49,7 @@ module lock_validation(
                         else
                             state_next = S2; // wrong final entry, wait for done/end confirmation before error state
                     end
-                    else if (switches == 4'b1010)
+                    else if (switches == 4'b1101)
                         state_next = S3;
                     else if(!eq)
                         state_next = S2;
@@ -63,7 +63,7 @@ module lock_validation(
 
             S2: begin // at least one digit is wrong, wait for the attempt to finish
                 if(enter_d)
-                    if(done || (switches == 4'b1010))
+                    if(done || (switches == 4'b1101))
                         state_next = S3;
             end
 

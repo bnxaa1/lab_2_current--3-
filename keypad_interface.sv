@@ -7,8 +7,8 @@
 
 module keypad_interface (
     input  logic        clk, rstn,
-    inout  logic [3:0]  cols,      // GPIO_0[35:32]
-    inout  logic [3:0]  rows,      // GPIO_0[31:28]
+    inout  wire  [3:0]  cols,      // GPIO_0[35:32]
+    inout  wire  [3:0]  rows,      // GPIO_0[31:28]
     output logic [3:0]  pass,
     output logic        Enter      // active-low, mirrors KEY[0] behaviour
 );
@@ -17,7 +17,7 @@ module keypad_interface (
     // Timing parameters  (~763 Hz → ~1.31 ms per cycle)
     // -------------------------------------------------------------------------
     localparam int DEBOUNCE_CYC = 15;   // ~20 ms debounce  (15 × 1.31 ms)
-    localparam int SETTLE_CYC   = 2;    // ~2.6 ms settle after direction swap
+    localparam int SETTLE_CYC   = 5;    // ~6.6 ms settle after direction swap
 
     // -------------------------------------------------------------------------
     // FSM

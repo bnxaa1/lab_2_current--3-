@@ -7,9 +7,9 @@
 //   addr 1 → 2
 //   addr 2 → 3
 //   addr 3 → 4
-//   addr 4 → 10 (4'b1010, end-of-code marker)
+//   addr 4 → 13 (4'b1101 = 4'hD, end-of-code marker)
 //
-// Correct entry sequence: 1, 2, 3, 4, 1010
+// Correct entry sequence: 1, 2, 3, 4, D
 //
 // Timing rationale:
 //   clk = 1 kHz (clk1ms, driven directly by testbench — clock1 lives in top level only)
@@ -119,12 +119,12 @@ module tb_lock_validation_wrapper;
 
         // ── Test 1: correct sequence ──────────────────────────────
         // Expected: correct=1 after entering 1, 2, 3, 4, 1010
-        $display("[%0t ns] Test 1: correct sequence  1-2-3-4-1010", $time);
+        $display("[%0t ns] Test 1: correct sequence  1-2-3-4-D", $time);
         enter_digit(4'd1);
         enter_digit(4'd2);
         enter_digit(4'd3);
         enter_digit(4'd4);
-        enter_digit(4'b1010);        // end marker (4'b1010 = decimal 10)
+        enter_digit(4'b1101);        // end marker (4'b1101 = decimal 10)
         repeat (4) @(posedge clk);
         if (correct)
             $display("[%0t ns] Test 1 PASS", $time);
@@ -136,7 +136,7 @@ module tb_lock_validation_wrapper;
         // Expected: FSM → S2 on digit 9 (≠ 1), → S3 on end marker
         $display("[%0t ns] Test 2: wrong digit  9-1010", $time);
         enter_digit(4'd9);           // wrong: expected 1
-        enter_digit(4'b1010);        // end marker → S3 (error)
+        enter_digit(4'b1101);        // end marker → S3 (error)
         repeat (4) @(posedge clk);
         if (error)
             $display("[%0t ns] Test 2 PASS", $time);
@@ -152,7 +152,7 @@ module tb_lock_validation_wrapper;
         enter_digit(4'd3);
         enter_digit(4'd4);
         enter_digit(4'd9);           // code=1010 here, switches≠1010 → S2
-        enter_digit(4'b1010);        // end marker while in S2 → S3
+        enter_digit(4'b1101);        // end marker while in S2 → S3
         repeat (4) @(posedge clk);
         if (error)
             $display("[%0t ns] Test 3 PASS", $time);
@@ -163,7 +163,7 @@ module tb_lock_validation_wrapper;
         // ── Test 4: early end marker ──────────────────────────────
         // At position 0, code=1 (not 1010); switches=1010 → S3 immediately
         $display("[%0t ns] Test 4: early end marker  1010 at digit 0", $time);
-        enter_digit(4'b1010);        // switches=1010 but code=1 → S3
+        enter_digit(4'b1101);        // switches=1010 but code=1 → S3
         repeat (4) @(posedge clk);
         if (error)
             $display("[%0t ns] Test 4 PASS", $time);
@@ -180,7 +180,7 @@ module tb_lock_validation_wrapper;
         enter_digit(4'd2);
         enter_digit(4'd3);
         enter_digit(4'd4);
-        enter_digit(4'b1010);
+        enter_digit(4'b1101);
         repeat (4) @(posedge clk);
         if (correct)
             $display("[%0t ns] Test 5 PASS", $time);

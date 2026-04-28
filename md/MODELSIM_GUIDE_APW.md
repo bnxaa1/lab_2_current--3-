@@ -22,7 +22,7 @@ Running requires two phases:
 ### Key design behaviours under test
 
 - **No start signal** — first digit press IS the first authentication digit; `enter_access = enter_d`
-- **Supervisor password** — `2, 0, 2, 6, 1010` (5 presses, end-marker terminated at addr 24); `rStartingAddress = 20`
+- **Supervisor password** — `2, 0, 2, 6, D` (`4'hD` terminator at addr 36); `rStartingAddress = 6'b100000` (32)
 - **S0 does not assert `rst_lv`** — all transitions back to S0 (S1 key interrupt, S1 timeout, S1 correct, S2 key removal, S5 error) assert `rst_lv` for one cycle to reset codeStorage counter and lock_validation FSM
 - **`srst_access` full reset** — propagates through `effective_rst_lv = rst_lv | srst_access` in wrapper; resets AP FSM, lock_validation FSM, and codeStorage counter together
 - **Timeout counter** — resets to 0 on S0→S1 only (user auth start); supervisor path (S2) has no timeout
@@ -120,7 +120,7 @@ Repeat this phase every time you edit source files. Or just run `sim_apw.do`.
 vlog -work work counter.v
 vlog -work work thirteenBitsCtr.v
 vlog -work work ThreeBitsCounter.v
-vlog -work work ram.v
+vlog -work work ram_sim.v
 ```
 
 ### Step 10 — Compile design files (SystemVerilog, dependency order)
@@ -226,26 +226,25 @@ Or from the GUI: **File → Do** → select `sim_apw.do`.
 
 | # | Sequence | Expected result |
 |---|---|---|
-| 1 | `1, 2, 3, 4, 1010` | `correct=1`, `Corr_LED=1` |
-| 2 | `9, 1010` | `error=1`, `Err_LED=1` (wrong first digit) |
-| 3 | `1, 2, 3, 4, 9, 1010` | `error=1` (correct digits, wrong at end-marker position) |
-| 4 | `1010` immediately | `error=1` (early end marker at digit 0) |
-| 5 | `1, 9, 1010` | `error=1` (first correct, second wrong) |
-| 6 | `1, 2`, `key=1`, `key=0`, then `1, 2, 3, 4, 1010` | `correct=1` (key interrupt, clean recovery) |
-| 7 | `key=1`, `0`, `key=0`, then `1, 2, 3, 4, 1010` | `correct=1` (supervisor key removal, clean recovery) |
-| 8 | `1, 2`, `srst_access`, then `1, 2, 3, 4, 1010` | `correct=1` (mid-entry full reset via `effective_rst_lv`) |
-| 9 | 4× `9, 1010` | `locked=1` after 4th failure |
+| 1 | `1, 2, 3, 4, D (4'hD)` | `correct=1`, `Corr_LED=1` |
+| 2 | `9, D (4'hD)` | `error=1`, `Err_LED=1` (wrong first digit) |
+| 3 | `1, 2, 3, 4, 9, D (4'hD)` | `error=1` (correct digits, wrong at end-marker position) |
+| 4 | `D (4'hD)` immediately | `error=1` (early end marker at digit 0) |
+| 5 | `1, 9, D (4'hD)` | `error=1` (first correct, second wrong) |
+| 6 | `1, 2`, `key=1`, `key=0`, then `1, 2, 3, 4, D (4'hD)` | `correct=1` (key interrupt, clean recovery) |
+| 7 | `key=1`, `0`, `key=0`, then `1, 2, 3, 4, D (4'hD)` | `correct=1` (supervisor key removal, clean recovery) |
+| 8 | `1, 2`, `srst_access`, then `1, 2, 3, 4, D (4'hD)` | `correct=1` (mid-entry full reset via `effective_rst_lv`) |
+| 9 | 4× `9, D (4'hD)` | `locked=1` after 4th failure |
 | 9b | user digits while `locked=1` | `correct=0`, `error=0` (`enter_d` gate blocks all presses) |
-| 9c | `rst_failureCtr` pulse, then `1, 2, 3, 4, 1010` | `correct=1` (counter still at 0 after blocked presses) |
+| 9c | `rst_failureCtr` pulse, then `1, 2, 3, 4, D (4'hD)` | `correct=1` (counter still at 0 after blocked presses) |
 | 10 | `1`, then 5100 idle cycles | `state_p=0` (timeout → S0) |
-| 11 | `key=1`, `2, 0, 2, 6, 1010` (not locked) | `correct=1`, `state_p=3` (S3, supervisor session) |
-| 12 | 4× `9, 1010` → lock, then `key=1`, `2, 0, 2, 6, 1010` | `correct=1`, `state_p=4` (S4, supervisor session while locked) |
+| 11 | `key=1`, `2, 0, 2, 6, D (4'hD)` (not locked) | `correct=1`, `state_p=3` (S3, supervisor session) |
+| 12 | 4× `9, D` → lock, then `key=1`, `2, 0, 2, 6, D` | `correct=1`, `state_p=3` (S3; S4 merged into S3, locked vs unlocked discriminated by `input_cond[2]` inside S3) |
 
 > **Test 10 runtime:** 5100 cycles × 1 ms = 5.1 s of simulated time.
 > ModelSim will take a few seconds of real CPU time for this test alone. Let it complete.
 
-> **Tests 11 & 12:** Supervisor S3 and S4 are currently dead-end states (no exit transitions yet).
-> The AP FSM stays in S3/S4 after authentication — `apply_reset` is used to clean up.
+> **Tests 11 & 12:** The AP FSM stays in S3 after authentication. Exit is via `apply_reset` (clears AP FSM via `srst_access`). In the full `lab_2` testbench, `supervisor_requests` handles exit via `exit_req`.
 
 ---
 
@@ -253,10 +252,10 @@ Or from the GUI: **File → Do** → select `sim_apw.do`.
 
 | Region | `rStartingAddress` | Digits | Correct entry |
 |---|---|---|---|
-| User (`key=0`) | `5'b00000` (0) | addr 0–4: `1, 2, 3, 4, 10` | `1, 2, 3, 4, 1010` (5 presses) |
-| Supervisor (`key=1`) | `5'b10100` (20) | addr 20–24: `2, 0, 2, 6, 10` | `2, 0, 2, 6, 1010` (5 presses) |
+| User A (`key=0`) | `6'b000000` (0) | addr 0–4: `1, 2, 3, 4, 13` | `1, 2, 3, 4, D` (5 presses) |
+| Supervisor A (`key=1`) | `6'b100000` (32) | addr 32–36: `2, 0, 2, 6, 13` | `2, 0, 2, 6, D` (5 presses) |
 
-The end-of-code marker is `4'b1010` = 10 (stored at addr 4 for user and addr 24 for supervisor).
+The end-of-code marker is `4'hD` = 13 (stored at addr 4 for user A and addr 36 for supervisor A).
 
 ---
 
@@ -289,7 +288,7 @@ The end-of-code marker is `4'b1010` = 10 (stored at addr 4 for user and addr 24 
 | Test 9b `FAIL` — `error` fires while locked | `enter_d` gate not working | Confirm `lock_validation_wrapper.sv` has `assign enter_d = enter_d_raw && (!locked \| key)` |
 | Test 9c `FAIL` — `correct` not seen after unlock | Counter advanced during blocked presses in 9b | `enter_d` gate check above; verify `enter_d_raw` vs `enter_d` waveform divergence while locked |
 | Tests 10–12 fail with `locked=1` | `apply_reset` not clearing `ThreeBitsCounter` | Confirm `apply_reset` pulses `rst_failureCtr=1` after `resetN=1` |
-| Test 11/12 `FAIL` — `correct` never fires | Supervisor RAM mismatch or rStartingAddress wrong | Confirm `ramm.mif` addr 20–24 = `2,0,2,6,10`; confirm `rStartingAddress = 5'b10100` for `key=1` in wrapper |
+| Test 11/12 `FAIL` — `correct` never fires | Supervisor RAM mismatch or rStartingAddress wrong | Confirm `ramm.mif` addr 32–36 = `2,0,2,6,13`; confirm `rStartingAddress = 6'b100000` (32) for `key=1` in wrapper |
 | Test 12 setup `FAIL` — system not locked before supervisor auth | Failure counter not incrementing | Confirm `access_permission.sv` S1 sets `increment=1` on error and `ThreeBitsCounter` is connected |
 | `Error: (vlog-2110) Illegal output port` | `.sv` file compiled without `-sv` flag | Add `-sv` to all SystemVerilog `vlog` commands |
 | Simulation hangs at Test 10 | Normal — 5100 cycles takes a few CPU seconds | Wait; do not interrupt |

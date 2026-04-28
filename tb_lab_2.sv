@@ -27,27 +27,23 @@
 module tb_lab_2;
 
     // ─── DUT ports ────────────────────────────────────────────────────────────
-    logic       key, clk, resetN, srst_access;
-    logic       error, correct, Err_LED, Corr_LED;
-    wire  [3:0] cols, rows;
+    logic       key, clk, resetN, srst_access, enter_al;
+    logic [3:0] switches;
+    logic       error, correct, Err_LED, Corr_LED, Lock_LED;
 
     lab_2 uut (
-        .cols        (cols),
-        .rows        (rows),
         .key         (key),
         .clk         (clk),
         .resetN      (resetN),
         .srst_access (srst_access),
+        .enter_al    (enter_al),
+        .switches    (switches),
         .error       (error),
         .correct     (correct),
         .Err_LED     (Err_LED),
-        .Corr_LED    (Corr_LED)
+        .Corr_LED    (Corr_LED),
+        .Lock_LED    (Lock_LED)
     );
-
-    // Weak pull-ups simulate PCB pull-up resistors on the keypad matrix.
-    // Keeps rows/cols high when no key is pressed → keypad_interface stays S_IDLE.
-    assign (weak1, highz0) rows = 4'hF;
-    assign (weak1, highz0) cols = 4'hF;
 
     // 50 MHz system clock
     initial clk = 0;
@@ -102,39 +98,37 @@ module tb_lab_2;
     endtask
 
     // ─── Key press ───────────────────────────────────────────────────────────
-    // Forces internal switches + enter_al so one_pulse_generator generates enter_d.
+    // Drives decoded keypad inputs directly so one_pulse_generator generates enter_d.
     // Timing budget (clk1ms cycles):
     //   hold=20: enter_d fires at cycle 16 (S1×15 + S2×1); 20 > 16 ✓
     //   release=25: OPG S3→S4(15 cycles)→S0 takes ~17 more cycles after enter_al rises;
     //              total OPG cycle ≈ 37; 20+25=45 > 37 so S0 is reached before next press ✓
     task press_key(input logic [3:0] digit);
-        force uut.switches = digit;
-        force uut.enter_al = 1'b0;
+        switches = digit;
+        enter_al = 1'b0;
         repeat(20) @(posedge uut.clk1ms);
-        force uut.enter_al = 1'b1;
+        enter_al = 1'b1;
         repeat(25) @(posedge uut.clk1ms);
-        release uut.switches;
-        release uut.enter_al;
     endtask
 
     // Default passwords (from ramm.mif)
-    //   User  A : 1,2,3,4,10   (addr 0–4)
-    //   Super A : 2,0,2,6,10   (addr 32–36)
+    //   User  A : 1,2,3,4,13   (addr 0–4,  13=4'hD terminator)
+    //   Super A : 2,0,2,6,13   (addr 32–36, 13=4'hD terminator)
     task automatic enter_user_pass;
         press_key(4'd1); press_key(4'd2); press_key(4'd3);
-        press_key(4'd4); press_key(4'd10);
+        press_key(4'd4); press_key(4'd13);
     endtask
 
     task automatic enter_super_pass;
         press_key(4'd2); press_key(4'd0); press_key(4'd2);
-        press_key(4'd6); press_key(4'd10);
+        press_key(4'd6); press_key(4'd13);
     endtask
 
     // =========================================================================
     // MAIN TEST SEQUENCE
     // =========================================================================
     initial begin
-        key = 0; resetN = 1; srst_access = 0;
+        key = 0; resetN = 1; srst_access = 0; enter_al = 1'b1; switches = 4'd0;
         test_num = 0; check_count = 0; fail_count = 0;
         clear_ev;
         apply_reset;
@@ -154,7 +148,7 @@ module tb_lab_2;
         test_num = 2;
         $display("\n[T2] Wrong user password → error + Err_LED");
         press_key(4'd9); press_key(4'd9); press_key(4'd9);
-        press_key(4'd9); press_key(4'd10);
+        press_key(4'd9); press_key(4'd13);
         repeat(5) @(posedge uut.clk1ms);
         check1("error fired",     ev_error,    1'b1);
         check1("correct silent",  ev_correct,  1'b0);
@@ -165,7 +159,7 @@ module tb_lab_2;
         // ── T3: Early terminator ──────────────────────────────────────────────
         test_num = 3;
         $display("\n[T3] Early terminator (only 1 digit) → error");
-        press_key(4'd1); press_key(4'd10);
+        press_key(4'd1); press_key(4'd13);
         repeat(5) @(posedge uut.clk1ms);
         check1("error fired",    ev_error,   1'b1);
         check1("correct silent", ev_correct, 1'b0);
@@ -175,10 +169,11 @@ module tb_lab_2;
         test_num = 4;
         $display("\n[T4] 4 wrong attempts → locked; further user auth blocked");
         repeat(4) begin
-            press_key(4'd9); press_key(4'd10);
+            press_key(4'd9); press_key(4'd13);
             repeat(5) @(posedge uut.clk1ms);
         end
         check1("locked asserted", uut.locked, 1'b1);
+        check1("Lock_LED asserted while locked", Lock_LED, 1'b1);
         clear_ev;
         enter_user_pass;
         repeat(5) @(posedge uut.clk1ms);
@@ -194,9 +189,11 @@ module tb_lab_2;
         repeat(3) @(posedge uut.clk1ms);
         check1("session_active asserted", uut.session_active, 1'b1);
         check3("AP FSM in S3",            uut.access_state_p, 3'd3);
+        clear_ev;
         press_key(4'd3); // '3' → UNLOCK_REQUEST → failure counter cleared
         repeat(5) @(posedge uut.clk1ms);
         check1("system unlocked",         uut.locked,         1'b0);
+        check1("Corr_LED on unlock",      ev_Corr_LED,        1'b1);
         press_key(4'd2); // '2' → EXIT_REQUEST → srst_access → S0
         repeat(5) @(posedge uut.clk1ms);
         check1("session ended after exit", uut.session_active, 1'b0);
@@ -209,9 +206,10 @@ module tb_lab_2;
         $display("\n[T6] Timeout during user auth → back to S0 (long sim wait)");
         press_key(4'd1); // first digit: S0 → S1, timeout counter starts
         repeat(5100) @(posedge uut.clk1ms);
-        check1("no correct after timeout",  ev_correct,        1'b0);
-        check1("no error after timeout",    ev_error,          1'b0);
-        check3("AP back to S0",             uut.access_state_p, 3'd0);
+        check1("no correct after timeout",     ev_correct,         1'b0);
+        check1("no error after timeout",       ev_error,           1'b0);
+        check1("Err_LED slow blink on timeout", ev_Err_LED,        1'b1);
+        check3("AP back to S0",                uut.access_state_p, 3'd0);
         apply_reset;
 
         // ── T7: Key insert aborts user auth ───────────────────────────────────
@@ -254,9 +252,10 @@ module tb_lab_2;
         repeat(2) @(posedge uut.clk1ms);
         enter_super_pass;
         repeat(3) @(posedge uut.clk1ms);
-        check1("session_active",   uut.session_active, 1'b1);
-        check3("AP FSM in S3",     uut.access_state_p, 3'd3);
-        check1("correct fired",    ev_correct,         1'b1);
+        check1("session_active",              uut.session_active, 1'b1);
+        check3("AP FSM in S3",               uut.access_state_p, 3'd3);
+        check1("correct fired",              ev_correct,         1'b1);
+        check1("Corr_LED on supervisor auth", ev_Corr_LED,       1'b1);
         press_key(4'd2); // exit
         repeat(3) @(posedge uut.clk1ms);
         key = 1'b0;
@@ -272,14 +271,14 @@ module tb_lab_2;
         press_key(4'd1); // '1' → CHANGE_USER_PASSWORD → change_password IDLE→ENTRY
         repeat(3) @(posedge uut.clk1ms);
         check1("cp_active after command", uut.cp_active, 1'b1);
-        // ENTRY: write new password 5,6,7,8,10 to inactive region (addr 16–20)
+        // ENTRY: write new password 5,6,7,8,D (4'hD=13) to inactive region (addr 16–20)
         press_key(4'd5); press_key(4'd6); press_key(4'd7);
-        press_key(4'd8); press_key(4'd10);
+        press_key(4'd8); press_key(4'd13);
         repeat(3) @(posedge uut.clk1ms);
         // VERIFY: re-enter same password; lock_validation reads from inactive region
         clear_ev;
         press_key(4'd5); press_key(4'd6); press_key(4'd7);
-        press_key(4'd8); press_key(4'd10);
+        press_key(4'd8); press_key(4'd13);
         repeat(5) @(posedge uut.clk1ms);
         check1("verify correct (new pass matches)", ev_correct,    1'b1);
         check1("cp_active cleared after DONE",      uut.cp_active, 1'b0);
@@ -290,10 +289,10 @@ module tb_lab_2;
         // verify new password works before reset (user_active=1 → region B active)
         clear_ev;
         press_key(4'd5); press_key(4'd6); press_key(4'd7);
-        press_key(4'd8); press_key(4'd10);
+        press_key(4'd8); press_key(4'd13);
         repeat(5) @(posedge uut.clk1ms);
         check1("new user password accepted", ev_correct, 1'b1);
-        apply_reset; // resetN resets user_active → region A active again
+        apply_reset; // resetN resets FSM state only; user_active persists (region B still active)
 
         // ── T12: Change user password — wrong verify ──────────────────────────
         test_num = 12;
@@ -304,13 +303,13 @@ module tb_lab_2;
         repeat(2) @(posedge uut.clk1ms);
         press_key(4'd1); // CHANGE_USER_PASSWORD
         repeat(3) @(posedge uut.clk1ms);
-        // ENTRY: new password 3,3,3,3,10
+        // ENTRY: new password 3,3,3,3,D (4'hD=13)
         press_key(4'd3); press_key(4'd3); press_key(4'd3);
-        press_key(4'd3); press_key(4'd10);
+        press_key(4'd3); press_key(4'd13);
         repeat(3) @(posedge uut.clk1ms);
         // VERIFY: different password → lock_validation fires error → ERROR→IDLE
         press_key(4'd9); press_key(4'd9); press_key(4'd9);
-        press_key(4'd9); press_key(4'd10);
+        press_key(4'd9); press_key(4'd13);
         repeat(5) @(posedge uut.clk1ms);
         check1("cp_fail: cp_active cleared",        uut.cp_active,      1'b0);
         check1("supervisor session still active",   uut.session_active, 1'b1);
@@ -329,14 +328,14 @@ module tb_lab_2;
         press_key(4'd4); // '4' → CHANGE_SUPERVISOR_PASSWORD
         repeat(3) @(posedge uut.clk1ms);
         check1("cp_active high (super change)", uut.cp_active, 1'b1);
-        // ENTRY: new supervisor password 1,1,1,1,10 to inactive super region (addr 48–52)
+        // ENTRY: new supervisor password 1,1,1,1,D (4'hD=13) to inactive super region (addr 48–52)
         press_key(4'd1); press_key(4'd1); press_key(4'd1);
-        press_key(4'd1); press_key(4'd10);
+        press_key(4'd1); press_key(4'd13);
         repeat(3) @(posedge uut.clk1ms);
         // VERIFY: same password
         clear_ev;
         press_key(4'd1); press_key(4'd1); press_key(4'd1);
-        press_key(4'd1); press_key(4'd10);
+        press_key(4'd1); press_key(4'd13);
         repeat(5) @(posedge uut.clk1ms);
         check1("verify correct (new super pass)", ev_correct,    1'b1);
         check1("cp_active cleared",               uut.cp_active, 1'b0);

@@ -4,12 +4,12 @@
 //
 // RAM (ramm.mif) — regions used by this DUT:
 //   User       region (key=0, rStartingAddress=0):
-//     addr 0-4 : 1, 2, 3, 4, 10   (10 = 4'b1010 end marker)
-//     Correct sequence: 1, 2, 3, 4, 1010
+//     addr 0-4 : 1, 2, 3, 4, 13   (13 = 4'b1101 = 4'hD terminator)
+//     Correct sequence: 1, 2, 3, 4, D
 //
-//   Supervisor region (key=1, rStartingAddress=20):
-//     addr 20-24: 2, 0, 2, 6, 10  (10 = 4'b1010 end marker at addr 24)
-//     Correct sequence: 2, 0, 2, 6, 1010  (5 presses)
+//   Supervisor region A (key=1, super_active=0, rStartingAddress=32):
+//     addr 32-36: 2, 0, 2, 6, 13  (13 = 4'b1101 = 4'hD terminator at addr 36)
+//     Correct sequence: 2, 0, 2, 6, D  (5 presses)
 //
 // Clock: 1 kHz (clk1ms) — clock1 is in top level; testbench drives clk directly.
 // Debounce (one_pulse_generator): 15 clk cycles → PRESS/RELEASE = 20 cycles.
@@ -28,29 +28,44 @@ module tb_access_permission_wrapper;
     logic        Err_LED, rst_lv, Corr_LED, increment, timeOut, locked;
     logic        correct, error;
     logic [2:0]  state_p;
+    logic        unlock_req, cp_complete, is_supervisor, cp_active, cp_ctrRst, cp_srst_lv;
+    logic [5:0]  target_addr;
+    logic        session_active, enter_d, done;
+    logic [5:0]  active_addr;
 
     // ── Event flags (latch posedge pulses; cleared via clear_ev before each test) ──
     logic ev_correct, ev_error, ev_Corr_LED, ev_Err_LED;
 
     access_permission_wrapper dut (
-        .resetN      (resetN),
-        .srst_access (srst_access),
-        .key         (key_to_dut),
-        .enter_al    (enter_al),
-        .switches    (switches),
-        .clk         (clk),
+        .resetN         (resetN),
+        .srst_access    (srst_access),
+        .key            (key_to_dut),
+        .enter_al       (enter_al),
+        .switches       (switches),
+        .clk            (clk),
         .rst_failureCtr (rst_failureCtr),
-        .wren        (wren),
-        .dataIn      (dataIn),
-        .Err_LED     (Err_LED),
-        .rst_lv      (rst_lv),
-        .Corr_LED    (Corr_LED),
-        .increment   (increment),
-        .timeOut     (timeOut),
-        .locked      (locked),
-        .correct     (correct),
-        .error       (error),
-        .state_p     (state_p)
+        .unlock_req     (unlock_req),
+        .cp_complete    (cp_complete),
+        .is_supervisor  (is_supervisor),
+        .cp_active      (cp_active),
+        .cp_ctrRst      (cp_ctrRst),
+        .cp_srst_lv     (cp_srst_lv),
+        .wren           (wren),
+        .dataIn         (dataIn),
+        .target_addr    (target_addr),
+        .Err_LED        (Err_LED),
+        .rst_lv         (rst_lv),
+        .Corr_LED       (Corr_LED),
+        .increment      (increment),
+        .timeOut        (timeOut),
+        .locked         (locked),
+        .correct        (correct),
+        .error          (error),
+        .state_p        (state_p),
+        .session_active (session_active),
+        .enter_d        (enter_d),
+        .done           (done),
+        .active_addr    (active_addr)
     );
 
     // ── 1 kHz clock ──────────────────────────────────────────────────────────
@@ -79,6 +94,13 @@ module tb_access_permission_wrapper;
         rst_failureCtr = 1'b0;
         wren           = 1'b0;
         dataIn         = 4'd0;
+        unlock_req     = 1'b0;
+        cp_complete    = 1'b0;
+        is_supervisor  = 1'b0;
+        cp_active      = 1'b0;
+        cp_ctrRst      = 1'b0;
+        cp_srst_lv     = 1'b0;
+        target_addr    = 6'd0;
         repeat (3) @(posedge clk);
         resetN         = 1'b1;
         rst_failureCtr = 1'b1;   // clear failure counter; no aclr on ThreeBitsCounter IP
@@ -169,13 +191,13 @@ module tb_access_permission_wrapper;
         $display("[%0t ns] Reset done", $time);
 
         // ── Test 1: correct user password ─────────────────────────────────
-        $display("[%0t ns] Test 1: correct user password  1-2-3-4-1010", $time);
+        $display("[%0t ns] Test 1: correct user password  1-2-3-4-D", $time);
         clear_ev;
         enter_digit(4'd1);
         enter_digit(4'd2);
         enter_digit(4'd3);
         enter_digit(4'd4);
-        enter_digit(4'b1010);
+        enter_digit(4'b1101);
         repeat (4) @(posedge clk);
         if (ev_correct && ev_Corr_LED)
             $display("[%0t ns] Test 1 PASS", $time);
@@ -184,10 +206,10 @@ module tb_access_permission_wrapper;
         sync_reset;
 
         // ── Test 2: wrong first digit ──────────────────────────────────────
-        $display("[%0t ns] Test 2: wrong first digit  9-1010", $time);
+        $display("[%0t ns] Test 2: wrong first digit  9-D", $time);
         clear_ev;
         enter_digit(4'd9);          // expected 1
-        enter_digit(4'b1010);
+        enter_digit(4'b1101);
         repeat (4) @(posedge clk);
         if (ev_error && ev_Err_LED)
             $display("[%0t ns] Test 2 PASS", $time);
@@ -196,15 +218,15 @@ module tb_access_permission_wrapper;
         apply_reset;                // clears failure counter; test 2 increments it
 
         // ── Test 3: correct digits, wrong at end-marker position ───────────
-        // At digit 5, code = 4'b1010 (end marker); entering 9 instead → mismatch
-        $display("[%0t ns] Test 3: correct 1-2-3-4, wrong end-marker  1-2-3-4-9-1010", $time);
+        // At digit 5, code = 4'b1101 (D terminator); entering 9 instead → mismatch
+        $display("[%0t ns] Test 3: correct 1-2-3-4, wrong end-marker  1-2-3-4-9-D", $time);
         clear_ev;
         enter_digit(4'd1);
         enter_digit(4'd2);
         enter_digit(4'd3);
         enter_digit(4'd4);
         enter_digit(4'd9);          // code=1010, switches=9 → mismatch
-        enter_digit(4'b1010);       // terminate while in mismatch → error
+        enter_digit(4'b1101);       // terminate while in mismatch → error
         repeat (4) @(posedge clk);
         if (ev_error)
             $display("[%0t ns] Test 3 PASS", $time);
@@ -213,9 +235,9 @@ module tb_access_permission_wrapper;
         apply_reset;                // clears failure counter; test 3 increments it
 
         // ── Test 4: early end marker (1010 as first digit) ─────────────────
-        $display("[%0t ns] Test 4: early end marker  1010 at digit 0", $time);
+        $display("[%0t ns] Test 4: early end marker  D at digit 0", $time);
         clear_ev;
-        enter_digit(4'b1010);
+        enter_digit(4'b1101);
         repeat (4) @(posedge clk);
         if (ev_error)
             $display("[%0t ns] Test 4 PASS", $time);
@@ -228,7 +250,7 @@ module tb_access_permission_wrapper;
         clear_ev;
         enter_digit(4'd1);          // code[0]=1 ✓
         enter_digit(4'd9);          // code[1]=2, 9≠2 → mismatch
-        enter_digit(4'b1010);
+        enter_digit(4'b1101);
         repeat (4) @(posedge clk);
         if (ev_error)
             $display("[%0t ns] Test 5 PASS", $time);
@@ -251,7 +273,7 @@ module tb_access_permission_wrapper;
         enter_digit(4'd2);
         enter_digit(4'd3);
         enter_digit(4'd4);
-        enter_digit(4'b1010);
+        enter_digit(4'b1101);
         repeat (4) @(posedge clk);
         if (ev_correct)
             $display("[%0t ns] Test 6 PASS  (recovered after key interrupt)", $time);
@@ -273,7 +295,7 @@ module tb_access_permission_wrapper;
         enter_digit(4'd2);
         enter_digit(4'd3);
         enter_digit(4'd4);
-        enter_digit(4'b1010);
+        enter_digit(4'b1101);
         repeat (4) @(posedge clk);
         if (ev_correct)
             $display("[%0t ns] Test 7 PASS  (recovered after supervisor key removal)", $time);
@@ -295,7 +317,7 @@ module tb_access_permission_wrapper;
         enter_digit(4'd2);
         enter_digit(4'd3);
         enter_digit(4'd4);
-        enter_digit(4'b1010);
+        enter_digit(4'b1101);
         repeat (4) @(posedge clk);
         if (ev_correct)
             $display("[%0t ns] Test 8 PASS", $time);
@@ -310,7 +332,7 @@ module tb_access_permission_wrapper;
         $display("[%0t ns] Test 9: 4 wrong attempts → locked", $time);
         repeat (4) begin : wrong_attempts
             enter_digit(4'd9);      // wrong digit (expected 1)
-            enter_digit(4'b1010);
+            enter_digit(4'b1101);
             repeat (10) @(posedge clk); // wait for S5→S0 auto-recovery
         end
         repeat (4) @(posedge clk);
@@ -331,12 +353,12 @@ module tb_access_permission_wrapper;
         enter_supervisor_digit(4'd0);
         enter_supervisor_digit(4'd2);
         enter_supervisor_digit(4'd6);
-        enter_supervisor_digit(4'b1010);
+        enter_supervisor_digit(4'b1101);
         repeat (4) @(posedge clk);
-        if (ev_correct && state_p == 3'd4)
-            $display("[%0t ns] Test 9b PASS  (supervisor authenticated while locked, state_p=%0d S4)", $time, state_p);
+        if (ev_correct && state_p == 3'd3)
+            $display("[%0t ns] Test 9b PASS  (supervisor authenticated while locked, state_p=%0d S3)", $time, state_p);
         else
-            $display("[%0t ns] Test 9b FAIL  ev_correct=%b state_p=%0d expected supervisor auth to S4", $time, ev_correct, state_p);
+            $display("[%0t ns] Test 9b FAIL  ev_correct=%b state_p=%0d expected supervisor auth to S3", $time, ev_correct, state_p);
         apply_reset;                // full reset: clears locked + all submodules
 
         // ── Test 10: timeout during user auth ──────────────────────────────
@@ -360,7 +382,7 @@ module tb_access_permission_wrapper;
         $display("[%0t ns] Test 11: locked system accepts supervisor auth → S4", $time);
         repeat (4) begin : lock_sys
             enter_digit(4'd9);
-            enter_digit(4'b1010);
+            enter_digit(4'b1101);
             repeat (10) @(posedge clk);
         end
         repeat (4) @(posedge clk);
@@ -374,12 +396,12 @@ module tb_access_permission_wrapper;
         enter_supervisor_digit(4'd0);
         enter_supervisor_digit(4'd2);
         enter_supervisor_digit(4'd6);
-        enter_supervisor_digit(4'b1010);
+        enter_supervisor_digit(4'b1101);
         repeat (4) @(posedge clk);
-        if (ev_correct && state_p == 3'd4)
-            $display("[%0t ns] Test 11 PASS  (supervisor authenticated while locked, state_p=%0d S4)", $time, state_p);
+        if (ev_correct && state_p == 3'd3)
+            $display("[%0t ns] Test 11 PASS  (supervisor authenticated while locked, state_p=%0d S3)", $time, state_p);
         else
-            $display("[%0t ns] Test 11 FAIL  ev_correct=%b state_p=%0d  expected ev_correct=1 S4", $time, ev_correct, state_p);
+            $display("[%0t ns] Test 11 FAIL  ev_correct=%b state_p=%0d  expected ev_correct=1 S3", $time, ev_correct, state_p);
         apply_reset;
 
         $display("=== simulation complete ===");

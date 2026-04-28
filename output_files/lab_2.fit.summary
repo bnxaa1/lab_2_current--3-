@@ -1,16 +1,16 @@
-Fitter Status : Successful - Fri Apr 17 10:09:19 2026
-Quartus Prime Version : 23.1std.1 Build 993 05/14/2024 SC Lite Edition
+Fitter Status : Successful - Tue Apr 28 16:25:47 2026
+Quartus Prime Version : 25.1std.0 Build 1129 10/21/2025 SC Lite Edition
 Revision Name : lab_2
-Top-level Entity Name : lock_validation
+Top-level Entity Name : DE1_SoC_golden_top
 Family : Cyclone V
 Device : 5CSEMA5F31C6
 Timing Models : Final
-Logic utilization (in ALMs) : 21 / 32,070 ( < 1 % )
-Total registers : 15
-Total pins : 19 / 457 ( 4 % )
+Logic utilization (in ALMs) : 168 / 32,070 ( < 1 % )
+Total registers : 159
+Total pins : 241 / 457 ( 53 % )
 Total virtual pins : 0
-Total block memory bits : 0 / 4,065,280 ( 0 % )
-Total RAM Blocks : 0 / 397 ( 0 % )
+Total block memory bits : 256 / 4,065,280 ( < 1 % )
+Total RAM Blocks : 1 / 397 ( < 1 % )
 Total DSP Blocks : 0 / 87 ( 0 % )
 Total HSSI RX PCSs : 0
 Total HSSI PMA RX Deserializers : 0

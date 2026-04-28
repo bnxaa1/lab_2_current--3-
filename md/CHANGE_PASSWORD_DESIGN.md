@@ -24,19 +24,20 @@ During a COPY phase, a power failure mid-write leaves the active password region
 ## FSM (change_password.sv)
 
 ```
-IDLE → ENTRY_RST → ENTRY → VERIFY_RST → VERIFY_WAIT → VERIFY → DONE / ERROR
+IDLE → ENTRY → VERIFY → DONE / ERROR
 ```
 
-COPY_PREP, COPY_WAIT1, COPY_WAIT2, and COPY states from the original design are removed entirely.
+The original design had intermediate `ENTRY_RST`, `VERIFY_RST`, `VERIFY_WAIT`, and `COPY` states. All of these were removed:
+
+- `ENTRY_RST` / `VERIFY_RST` — counter and FSM resets are now **Mealy outputs** on the IDLE→ENTRY and ENTRY→VERIFY transitions (asserted combinatorially on the same clock edge as the state change).
+- `VERIFY_WAIT` — eliminated; the 1-cycle RAM read latency is absorbed by `lock_validation`'s debounce window (15 cycles) before `enter_d` fires.
+- `COPY_PREP` / `COPY_WAIT1` / `COPY_WAIT2` / `COPY` — eliminated entirely; the address-swap eliminates the need to copy digits from the inactive to the active region.
 
 | State | Action |
 |---|---|
-| IDLE | Wait for `start` pulse |
-| ENTRY_RST | Assert `ctrRst`, `srst_lv`; set `wStartAddr = inactive_addr` (1 cycle) |
-| ENTRY | Write `switches` to inactive region on each `enter_d`; `srst_lv=1`; exit on `switches==1010` or `done` |
-| VERIFY_RST | Assert `ctrRst`, `srst_lv`; set `rStartAddr = inactive_addr` (1 cycle) |
-| VERIFY_WAIT | Hold `rStartAddr = inactive_addr` (1 cycle RAM read latency) |
-| VERIFY | `rStartAddr = inactive_addr`; lock_validation compares re-entry against written digits; exit on `lv_correct` or `lv_error` |
+| IDLE | `cp_active=0`; wait for `start` pulse. On `start` (Mealy): assert `ctrRst`, `srst_lv`; go to ENTRY |
+| ENTRY | `cp_active=1`, `srst_lv=1`, `wren=1`, `dataIn=switches`; on `enter_d`: `clk_en_override=1`; if `switches==4'hD` or `done` (Mealy): assert `ctrRst`, `srst_lv`; go to VERIFY |
+| VERIFY | `cp_active=1`; on `enter_d`: `clk_en_override=1`; if `lv_correct` → DONE; if `lv_error` → ERROR |
 | DONE | Assert `cp_complete` for 1 cycle → IDLE |
 | ERROR | Assert `cp_fail` for 1 cycle → IDLE |
 
@@ -47,27 +48,28 @@ COPY_PREP, COPY_WAIT1, COPY_WAIT2, and COPY states from the original design are 
 ```sv
 module change_password (
     input  logic        clk, resetN,
-    input  logic        start,           // 1-cycle pulse from supervisor_requests
-    input  logic        enter_d,         // debounced keypress
-    input  logic [3:0]  switches,        // digit input
+    input  logic        start,           // level signal from supervisor_requests (high while command active)
+    input  logic        enter_d,         // debounced keypress from lock_validation_wrapper
+    input  logic        done,            // codeStorage counter at 9 (max digits reached)
     input  logic        lv_correct,      // lock_validation correct output
     input  logic        lv_error,        // lock_validation error output
-    input  logic        done,            // codeStorage counter at 9 (max digits)
+    input  logic [3:0]  switches,        // digit input
     input  logic [5:0]  active_addr,     // current active region start address from wrapper
-    output logic        cp_active,       // 1 while running; mux selector in lab_2
-    output logic        wren,
-    output logic [3:0]  dataIn,
-    output logic [5:0]  wStartAddr,      // inactive region (write target during ENTRY)
-    output logic [5:0]  rStartAddr,      // inactive region (read source during VERIFY)
-    output logic        clk_en_override, // drives codeStorage clk_en
+    output logic        cp_active,       // 1 while running; mux selector in access_permission_wrapper
+    output logic        wren,            // RAM write enable
+    output logic        clk_en_override, // drives codeStorage clk_en (redundant; left unconnected in lab_2)
     output logic        ctrRst,          // resets codeStorage counter
     output logic        srst_lv,         // holds lock_validation in reset during ENTRY
     output logic        cp_complete,     // verification passed → wrapper swaps address pointer
-    output logic        cp_fail          // mismatch or cancel → supervisor_requests → NO_REQUEST
+    output logic        cp_fail,         // mismatch → supervisor_requests → NO_REQUEST
+    output logic [3:0]  dataIn,          // write data to inactive region
+    output logic [5:0]  target_addr      // inactive region address; used by wrapper for both rStartingAddress and wStartingAddress
 );
 ```
 
-`inactive_addr` is derived inside the module: `inactive_addr = active_addr ^ 6'b010000`.
+`target_addr` is derived inside the module: `target_addr = active_addr ^ 6'b010000`.
+
+`clk_en_override` is present but left unconnected in `lab_2.sv` — `enter_d` already drives `codeStorage.clk_en` through the normal path.
 
 ---
 
@@ -76,47 +78,46 @@ module change_password (
 Two 1-bit flip-flops track which region is currently active for each identity:
 
 ```sv
-logic user_active, super_active; // 0 = region A, 1 = region B; init 0 on resetN
+logic user_active, super_active; // 0 = region A, 1 = region B
 ```
 
-On `cp_complete`, the wrapper flips the relevant bit:
+These registers have **no reset** — they survive a `resetN` restart so that a password change is not lost on power cycle. They only change on `cp_complete`:
 
 ```sv
-always_ff @(posedge clk, negedge resetN) begin
-    if (!resetN) begin
-        user_active  <= 1'b0;
-        super_active <= 1'b0;
-    end else if (cp_complete) begin
+always_ff @(posedge clk) begin  // no negedge resetN — survives restart
+    if (cp_complete) begin
         if (is_supervisor) super_active <= ~super_active;
         else               user_active  <= ~user_active;
     end
 end
 ```
 
-`rStartingAddress` changes from a hardcoded wire to register-driven:
+`rStartingAddress` is register-driven:
 
 ```sv
-// was: assign rStartingAddress = key ? 6'b100000 : 6'b000000;
-assign rStartingAddress = {key, key ? super_active : user_active, 4'b0000};
+assign normal_rAddr     = {key, key ? super_active : user_active, 4'b0000};
+assign active_addr      = normal_rAddr;
+assign rStartingAddress = cp_active ? target_addr : normal_rAddr;
 ```
 
-`is_supervisor` is driven from `lab_2.sv` — it is the latched value of `change_super_req` at the moment `cp_start` was issued.
+`is_supervisor` in `lab_2.sv` is `assign is_supervisor = change_super_req` — stable throughout the change_password session.
 
 ---
 
 ## Cancel Path
 
-Supervisor enters `1010` as the first digit during ENTRY → only the terminator is written to the inactive region. VERIFY receives a re-entry that cannot match (any real digit sequence vs a single terminator) → `lv_error` → `cp_fail` → `supervisor_requests` returns to `NO_REQUEST`. The active region is never touched.
+If the supervisor presses `D` as the first digit during ENTRY, only the terminator is written to the inactive region. VERIFY receives a re-entry that cannot match (any real digit sequence vs. a single terminator) → `lv_error` → `cp_fail` → `supervisor_requests` returns to `NO_REQUEST`. The active region is never touched.
 
 ---
 
 ## Signal State Table
 
-| State | wren | wStartAddr | rStartAddr | clk_en_override | srst_lv | dataIn |
+| State | cp_active | wren | dataIn | clk_en_override | ctrRst | srst_lv |
 |---|---|---|---|---|---|---|
-| ENTRY_RST | 0 | inactive | — | 0 | 1 | — |
-| ENTRY | 1 | inactive | — | enter_d | 1 | switches |
-| VERIFY_RST | 0 | — | inactive | 0 | 1 | — |
-| VERIFY_WAIT | 0 | — | inactive | 0 | 0 | — |
-| VERIFY | 0 | — | inactive | enter_d | 0 | — |
-| DONE/ERROR | 0 | — | — | 0 | 0 | — |
+| IDLE (idle) | 0 | 0 | 0 | 0 | 0 | 0 |
+| IDLE → ENTRY (Mealy on start) | 0 | 0 | 0 | 0 | 1 | 1 |
+| ENTRY | 1 | 1 | switches | enter_d | 0 | 1 |
+| ENTRY → VERIFY (Mealy on terminator/done) | 1 | 1 | switches | 1 | 1 | 1 |
+| VERIFY | 1 | 0 | 0 | enter_d | 0 | 0 |
+| DONE | 1 | 0 | 0 | 0 | 0 | 0 |
+| ERROR | 1 | 0 | 0 | 0 | 0 | 0 |

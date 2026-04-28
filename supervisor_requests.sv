@@ -2,7 +2,8 @@ module supervisor_requests(
     input  logic        clk, rstN,
     input  logic        session_active, locked, enter_d, cp_done,
     input  logic [3:0]  switches,
-    output logic        exit_req, unlock_req, change_user_req, change_super_req
+    output logic        exit_req, unlock_req, change_user_req, change_super_req,
+    output logic [2:0]  sr_state
 );
 
     typedef enum logic [2:0] {NO_REQUEST, CHANGE_USER_PASSWORD, CHANGE_SUPERVISOR_PASSWORD, EXIT_REQUEST, UNLOCK_REQUEST} cmd_request_e;
@@ -12,6 +13,7 @@ module supervisor_requests(
     assign unlock_req       = (state_reg == UNLOCK_REQUEST);
     assign change_user_req  = (state_reg == CHANGE_USER_PASSWORD);
     assign change_super_req = (state_reg == CHANGE_SUPERVISOR_PASSWORD);
+    assign sr_state         = state_reg;
 
     always_ff @(posedge clk, negedge rstN) begin
         if(!rstN)

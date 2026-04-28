@@ -10,7 +10,7 @@ cModel Technology
 Z0 dC:/Users/mahaz/Desktop/lab_2_current (3)
 vaccess_permission
 Z1 DXx6 sv_std 3 std 0 22 AD7iAPLo6nTIKk<N0eo=D3
-Z2 !s110 1777308344
+Z2 !s110 1777383268
 !i10b 1
 !s100 WYMXR5AQ6GDJcXD5]g4YP3
 IgCcMBdaM<fN_41gmcbIKA1
@@ -26,23 +26,23 @@ Z4 OV;L;10.5b;63
 r1
 !s85 0
 31
-Z5 !s108 1777308344.000000
-!s107 access_permission.sv|
-!s90 -reportprogress|300|-sv|-work|work|access_permission.sv|
+Z5 !s108 1777383268.000000
+Z6 !s107 DE1_SoC_golden_top.v|clock1.sv|keypad_interface_single_scan.sv|lab_2.sv|leds.sv|change_password.sv|access_permission_wrapper.sv|access_permission.sv|supervisor_requests.sv|lock_validation_wrapper.sv|lock_validation.sv|codeStorage.sv|one_pulse_generator.sv|
+Z7 !s90 -sv|-work|work|one_pulse_generator.sv|codeStorage.sv|lock_validation.sv|lock_validation_wrapper.sv|supervisor_requests.sv|access_permission.sv|access_permission_wrapper.sv|change_password.sv|leds.sv|lab_2.sv|keypad_interface_single_scan.sv|clock1.sv|DE1_SoC_golden_top.v|
 !i113 1
-Z6 o-sv -work work
-Z7 tCvgOpt 0
+Z8 o-sv -work work
+Z9 tCvgOpt 0
 vaccess_permission_wrapper
 R1
 R2
 !i10b 1
-!s100 ]Z5Nd>Ie]Xz0PfVD0R=3[2
-I56YGF7n48QoCK0E]z6CYd1
+!s100 lPg22o4BFG0>KoVilQTPe3
+I?<dPZS^^5lJ^eR@G;KOd32
 R3
 !s105 access_permission_wrapper_sv_unit
 S1
 R0
-w1777239938
+w1777370415
 8access_permission_wrapper.sv
 Faccess_permission_wrapper.sv
 L0 1
@@ -51,22 +51,22 @@ r1
 !s85 0
 31
 R5
-!s107 access_permission_wrapper.sv|
-!s90 -reportprogress|300|-sv|-work|work|access_permission_wrapper.sv|
-!i113 1
 R6
 R7
+!i113 1
+R8
+R9
 vchange_password
 R1
-Z8 !s110 1777308345
+R2
 !i10b 1
-!s100 fJXBkKb6bX2g<R4RQNV0N0
-I<hLP_3VaIXN90JUCdg:2P1
+!s100 `1CN699SoVDi>A^Q0T1zH1
+I1z797FYB1?gKdJ2Ka^NFe3
 R3
 !s105 change_password_sv_unit
 S1
 R0
-w1777239581
+w1777310981
 8change_password.sv
 Fchange_password.sv
 L0 1
@@ -74,15 +74,15 @@ R4
 r1
 !s85 0
 31
-Z9 !s108 1777308345.000000
-!s107 change_password.sv|
-!s90 -reportprogress|300|-sv|-work|work|change_password.sv|
-!i113 1
+R5
 R6
 R7
+!i113 1
+R8
+R9
 vclock1
 R1
-Z10 !s110 1777308343
+R2
 !i10b 1
 !s100 CI^d2z0g=[1`GPMWPb21D1
 I=6b=8M3k0HFC>>]QdP<Ez1
@@ -98,23 +98,23 @@ R4
 r1
 !s85 0
 31
-Z11 !s108 1777308343.000000
-!s107 clock1.sv|
-!s90 -reportprogress|300|-sv|-work|work|clock1.sv|
-!i113 1
+R5
 R6
 R7
+!i113 1
+R8
+R9
 vcodeStorage
 R1
 R2
 !i10b 1
-!s100 oY[KE=TfI:c0hoZgcn?[R3
-I>o`gY:eD?fMKEHff@kZFl0
+!s100 40Ia7m[b3j2kIBP8`be2d1
+I<4gz2PjH87@HLDf0R0hEi3
 R3
 !s105 codeStorage_sv_unit
 S1
 R0
-w1777212194
+w1777364027
 8codeStorage.sv
 FcodeStorage.sv
 L0 1
@@ -123,36 +123,61 @@ r1
 !s85 0
 31
 R5
-!s107 codeStorage.sv|
-!s90 -reportprogress|300|-sv|-work|work|codeStorage.sv|
-!i113 1
 R6
 R7
+!i113 1
+R8
+R9
 ncode@storage
 vcounter
-!s110 1777308342
+Z10 !s110 1777365220
 !i10b 1
-!s100 n2a17z=h`[CKcEXKi_=0N2
-IZ[B8cleB9V@JH2>1Z3]L52
+!s100 ]gMnJ1oGmkPE8^0k]gKA>3
+IVa;LLKP<Oc^5an_cd]SM91
 R3
 R0
-w1772707296
+w1777364022
 8counter.v
 Fcounter.v
-Z12 L0 40
+Z11 L0 40
 R4
 r1
 !s85 0
 31
-Z13 !s108 1777308342.000000
+Z12 !s108 1777365220.000000
 !s107 counter.v|
 !s90 -reportprogress|300|-work|work|counter.v|
 !i113 1
-Z14 o-work work
+Z13 o-work work
+R9
+vDE1_SoC_golden_top
+R1
+R2
+!i10b 1
+!s100 8X`LmLcmGbML1SMcg=f_g3
+I@UL]ecoQMJz=8;F`]@RcC2
+R3
+!s105 DE1_SoC_golden_top_v_unit
+S1
+R0
+w1777383261
+8DE1_SoC_golden_top.v
+FDE1_SoC_golden_top.v
+L0 36
+R4
+r1
+!s85 0
+31
+R5
+R6
 R7
+!i113 1
+R8
+R9
+n@d@e1_@so@c_golden_top
 vkeypad_interface
 R1
-R10
+Z14 !s110 1777365221
 !i10b 1
 !s100 zNU2=COcVY^ijVCgoEjGm2
 ImHba5>mogcMZGjk8VWVc<1
@@ -168,23 +193,47 @@ R4
 r1
 !s85 0
 31
-R11
+Z15 !s108 1777365221.000000
 !s107 keypad_interface.sv|
 !s90 -reportprogress|300|-sv|-work|work|keypad_interface.sv|
 !i113 1
+R8
+R9
+vkeypad_interface_single_scan
+R1
+R2
+!i10b 1
+!s100 NiSaV`;`aMc1M53bKY<GA3
+Ii6nlG3TkgnO3@TGW=5^]91
+R3
+!s105 keypad_interface_single_scan_sv_unit
+S1
+R0
+w1777381800
+8keypad_interface_single_scan.sv
+Fkeypad_interface_single_scan.sv
+L0 1
+R4
+r1
+!s85 0
+31
+R5
 R6
 R7
+!i113 1
+R8
+R9
 vlab_2
 R1
-R8
+R2
 !i10b 1
-!s100 W^WfWL2Beh?n[402;OiKa0
-I8006`h^4FQ0@HDY9ShBGb2
+!s100 =Gj>@HFU0>l6Q5lDcaNL82
+IjU[zhc`B5YlQU;3<^2I741
 R3
 !s105 lab_2_sv_unit
 S1
 R0
-w1777272044
+w1777378921
 8lab_2.sv
 Flab_2.sv
 L0 1
@@ -192,23 +241,23 @@ R4
 r1
 !s85 0
 31
-R9
-!s107 lab_2.sv|
-!s90 -reportprogress|300|-sv|-work|work|lab_2.sv|
-!i113 1
+R5
 R6
 R7
+!i113 1
+R8
+R9
 vleds
 R1
-R8
+R2
 !i10b 1
-!s100 Z@=3HOk9Xn0BDzNg29cf>1
-I1@kJ[=ENnRIAgNL6UZ<bR0
+!s100 YEHLVz>oXl:RY^^f2_8RN1
+IHB;2JFaVKkBNTIAocI`Uz0
 R3
 !s105 leds_sv_unit
 S1
 R0
-w1777219166
+w1777371379
 8leds.sv
 Fleds.sv
 L0 1
@@ -216,23 +265,23 @@ R4
 r1
 !s85 0
 31
-R9
-!s107 leds.sv|
-!s90 -reportprogress|300|-sv|-work|work|leds.sv|
-!i113 1
+R5
 R6
 R7
+!i113 1
+R8
+R9
 vlock_validation
 R1
 R2
 !i10b 1
-!s100 Zgnb@[FPkALmNP7WTzOD:3
-IAdI52bG4gjJ[2_WKOk11?3
+!s100 L1?^kQD_mgE@d3KUj56aB0
+IQdYX13GEOm4];8m2=HTg^1
 R3
 !s105 lock_validation_sv_unit
 S1
 R0
-w1776962303
+w1777310976
 8lock_validation.sv
 Flock_validation.sv
 L0 1
@@ -241,22 +290,22 @@ r1
 !s85 0
 31
 R5
-!s107 lock_validation.sv|
-!s90 -reportprogress|300|-sv|-work|work|lock_validation.sv|
-!i113 1
 R6
 R7
+!i113 1
+R8
+R9
 vlock_validation_wrapper
 R1
 R2
 !i10b 1
-!s100 79Rfk^<A`;I@^dGLmm0ZQ0
-IYI>Q<6U]H9eLM1j5V4I8W2
+!s100 ;?<COi7`4WI?3QY1TD<Mn2
+IiWS@l6WaQfmOYcz^QY3A42
 R3
 !s105 lock_validation_wrapper_sv_unit
 S1
 R0
-w1777239900
+w1777366489
 8lock_validation_wrapper.sv
 Flock_validation_wrapper.sv
 L0 1
@@ -265,22 +314,22 @@ r1
 !s85 0
 31
 R5
-!s107 lock_validation_wrapper.sv|
-!s90 -reportprogress|300|-sv|-work|work|lock_validation_wrapper.sv|
-!i113 1
 R6
 R7
+!i113 1
+R8
+R9
 vone_pulse_generator
 R1
 R2
 !i10b 1
-!s100 >>H:Mhb6n4E@nm2`CDmYf3
-I>1f7[nRCB6FFc]1j`YHc93
+!s100 47L_Nm8VjKGX``P;f^6Z;3
+IgLknZc5dmLC:`8dU<RIKH2
 R3
 !s105 one_pulse_generator_sv_unit
 S1
 R0
-w1776864982
+w1777364032
 8one_pulse_generator.sv
 Fone_pulse_generator.sv
 L0 1
@@ -288,20 +337,20 @@ R4
 r1
 !s85 0
 31
-R11
-!s107 one_pulse_generator.sv|
-!s90 -reportprogress|300|-sv|-work|work|one_pulse_generator.sv|
-!i113 1
+R5
 R6
 R7
+!i113 1
+R8
+R9
 vram
-R10
+R14
 !i10b 1
-!s100 YeK@k^LQ9>a]_T^dP0f:R1
-Ihn;SBl>4j:bR2:O1cU>n43
+!s100 AO_dE1CfIQEBjK=jYfbJP2
+I=@aHQTK1z^zP^>X8L;34z2
 R3
 R0
-w1777287908
+w1777310986
 8ram_sim.v
 Fram_sim.v
 L0 6
@@ -309,12 +358,12 @@ R4
 r1
 !s85 0
 31
-R11
+R15
 !s107 ram_sim.v|
 !s90 -reportprogress|300|-work|work|ram_sim.v|
 !i113 1
-R14
-R7
+R13
+R9
 vsixteenbitsctr
 R10
 !i10b 1
@@ -325,28 +374,28 @@ R0
 w1776861785
 8sixteenbitsctr.v
 Fsixteenbitsctr.v
-R12
+R11
 R4
 r1
 !s85 0
 31
-R13
+R12
 !s107 sixteenbitsctr.v|
 !s90 -reportprogress|300|-work|work|sixteenbitsctr.v|
 !i113 1
-R14
-R7
+R13
+R9
 vsupervisor_requests
 R1
-R8
+R2
 !i10b 1
-!s100 kgOQJoT>K`d[:X?CZ?n_40
-IKT0L6[ML=4IG79`jZ6FOL2
+!s100 Y3fnelDA=_6GM<BIkHede1
+I0Z1z_mK:okHT`kYHznIj93
 R3
 !s105 supervisor_requests_sv_unit
 S1
 R0
-w1777207364
+w1777372284
 8supervisor_requests.sv
 Fsupervisor_requests.sv
 L0 1
@@ -354,23 +403,23 @@ R4
 r1
 !s85 0
 31
-R9
-!s107 supervisor_requests.sv|
-!s90 -reportprogress|300|-sv|-work|work|supervisor_requests.sv|
-!i113 1
+R5
 R6
 R7
+!i113 1
+R8
+R9
 vtb_lab_2
 R1
-R8
+!s110 1777365223
 !i10b 1
-!s100 o@BXKe6Vi`BHefa==jgPa1
-IBFEUPCNk<?j7HG6Y^0:kG1
+!s100 _f:P8L3XNcCbafY]9J1Dc1
+I93DM_Sf`[c9mF5Beii<H81
 R3
 !s105 tb_lab_2_sv_unit
 S1
 R0
-w1777295986
+w1777314295
 8tb_lab_2.sv
 Ftb_lab_2.sv
 L0 27
@@ -378,12 +427,12 @@ R4
 r1
 !s85 0
 31
-R9
+!s108 1777365223.000000
 !s107 tb_lab_2.sv|
 !s90 -reportprogress|300|-sv|-work|work|tb_lab_2.sv|
 !i113 1
-R6
-R7
+R8
+R9
 vthirteenBitsCtr
 R10
 !i10b 1
@@ -394,37 +443,59 @@ R0
 w1776864711
 8thirteenBitsCtr.v
 FthirteenBitsCtr.v
-R12
+R11
 R4
 r1
 !s85 0
 31
-R11
+R12
 !s107 thirteenBitsCtr.v|
 !s90 -reportprogress|300|-work|work|thirteenBitsCtr.v|
 !i113 1
-R14
-R7
+R13
+R9
 nthirteen@bits@ctr
 vThreeBitsCounter
 R10
 !i10b 1
-!s100 jk5LS5P@Q9=SQz8LMaRoT0
-I8T<FQF]`IRAYi8[=Vz<0h2
+!s100 f?D^PzA8EkJPUOjlgPY0G2
+IV[?M9NagSA4]Od2TaLa4_0
 R3
 R0
-w1775909196
+w1777311840
 8ThreeBitsCounter.v
 FThreeBitsCounter.v
-R12
+R11
 R4
 r1
 !s85 0
 31
-R11
+R12
 !s107 ThreeBitsCounter.v|
 !s90 -reportprogress|300|-work|work|ThreeBitsCounter.v|
 !i113 1
-R14
-R7
+R13
+R9
 n@three@bits@counter
+vtwelveBitsCounter
+R14
+!i10b 1
+!s100 E7;IbKJNf;SjRXO`f7Kha2
+IzQ1j:;`[E@TF[=0zd<[9h0
+R3
+R0
+w1777309706
+8twelveBitsCounter.v
+FtwelveBitsCounter.v
+R11
+R4
+r1
+!s85 0
+31
+R15
+!s107 twelveBitsCounter.v|
+!s90 -reportprogress|300|-work|work|twelveBitsCounter.v|
+!i113 1
+R13
+R9
+ntwelve@bits@counter

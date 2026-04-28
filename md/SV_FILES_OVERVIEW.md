@@ -6,34 +6,33 @@ This document explains the purpose of each `.sv` file in the project, the design
 
 ## High-level design idea
 
-This project is building a digital lock / access-control style system.
-The logic is split into smaller modules so that each file handles one clear responsibility:
+This project implements a digital lock / access-control system for a DE1-SoC FPGA board (Altera Cyclone V). The logic is split into focused modules:
 
-- **input conditioning**: turning a mechanical button press into a clean one-cycle pulse
-- **lock validation**: checking whether the entered sequence is correct
-- **access policy / output control**: deciding what LEDs or status outputs should do
-- **storage**: holding password or temporary code data in RAM
-
-This separation is useful because it keeps each FSM or data-path block focused on one job instead of mixing all behaviors in one large file.
+- **Clock division** — scaling 50 MHz to 1 kHz for human-scale timing
+- **Input conditioning** — turning a keypad matrix scan into a clean one-cycle pulse
+- **Lock validation** — checking whether the entered sequence matches the stored password
+- **Access policy** — deciding what the system should do after a correct or incorrect attempt
+- **Supervisor session** — handling supervisor commands (unlock, change password, exit)
+- **Password change** — atomic two-region write-then-swap for password updates
+- **LED output driving** — translating 1-cycle pulse events into visible LED feedback
+- **Memory / sequence storage** — RAM with auto-stepping address counter
 
 ---
 
-## Files currently used in the Quartus project
-
-According to `lab_2.qsf`, these SystemVerilog files are part of the active project:
+## Files in the active Quartus project
 
 - `lab_2.sv`
 - `clock1.sv`
-- `leds.sv`
+- `keypad_interface.sv`
 - `one_pulse_generator.sv`
+- `lock_validation.sv`
+- `lock_validation_wrapper.sv`
+- `codeStorage.sv`
 - `access_permission.sv`
 - `access_permission_wrapper.sv`
 - `supervisor_requests.sv`
-- `codeStorage.sv`
-- `lock_validation.sv`
 - `change_password.sv`
-
-There are also additional `.sv` files under `first trial/` which look like earlier archived versions.
+- `leds.sv`
 
 ---
 
@@ -42,15 +41,15 @@ There are also additional `.sv` files under `first trial/` which look like earli
 ### What it does
 Divides the 50 MHz system clock (`clk`) down to a **1 kHz clock** (`clk_out`, period = 1 ms).
 
-### Main logic behind it
-Uses a 16-bit counter IP (`sixteenbitsctr`) that counts 0 → 49,999, resets on cycle 49,999 (`rst = (q == 16'd49999)`), and drives `clk_out = (q < 16'd25000)` — giving a clean 50 % duty-cycle 1 kHz output.
+### Main logic
+Uses a 16-bit counter IP (`sixteenbitsctr`) counting 0 → 49 999, resets on cycle 49 999 (`rst = (q == 16'd49999)`), drives `clk_out = (q < 16'd25000)` — clean 50% duty-cycle 1 kHz output.
 
 ### Why this file exists
-All FSMs and counters that need human-scale timing (debounce, timeout, lockout) run on `clk1ms` rather than the raw 50 MHz clock. This avoids the need for individually large counter IPs in each module.
+All FSMs and counters that need human-scale timing (debounce, timeout, lockout) run on `clk1ms` instead of the raw 50 MHz clock. This avoids individually large counter IPs in each module.
 
-### Effects on the rest of the design
-- `one_pulse_generator`: 4-bit counter at `clk1ms` → 15 cycles × 1 ms = **15 ms debounce** (fixes issue #1)
-- `access_permission_wrapper`: timeout compares at 5,000 cycles × 1 ms = **5 s** (fixes issue #6)
+### Effects on the design
+- `one_pulse_generator`: 4-bit counter at `clk1ms` → 15 cycles × 1 ms = **15 ms debounce**
+- `thirteenBitsCtr` timeout: 5 000 cycles × 1 ms = **5 s timeout**
 
 ### Relationship to other files
 - **instantiated by** `lab_2.sv`
@@ -58,308 +57,359 @@ All FSMs and counters that need human-scale timing (debounce, timeout, lockout) 
 
 ---
 
-## 2) `lab_2.sv` (top-level)
+## 2) `keypad_interface.sv`
 
 ### What it does
-This file is the **top-level integration module** for the input-conditioning and validation path.
+Scans a 4×4 keypad matrix connected to GPIO pins and produces the currently pressed key (`pass[3:0]`) and an active-low enter signal (`Enter`).
 
-### Main logic behind it
-Its job is only to **connect submodules together**:
+### GPIO pin assignment
 
-- it instantiates `lock_validation` as the main validation block
-- it instantiates `codeStorage` to supply the stored code and `done` signal
-- it instantiates `access_permission_wrapper` to generate policy/control signals such as `srst`, `S`, `Err_LED`, and `Corr_LED`
-- `lock_validation` now internally instantiates `one_pulse_generator`
+The keypad's 8 wires are connected to a contiguous block of GPIO_0 header pins:
 
-The validation state output (`state_regt`) and access mode signal (`S`) are kept as **internal signals** inside `lab_2.sv` instead of being exposed as top-level outputs.
+```
+GPIO_0[35:32] → cols[3:0]   (column sense/drive lines)
+GPIO_0[31:28] → rows[3:0]   (row sense/drive lines)
+```
+
+All 8 lines must have **external pull-up resistors** to VCC so they read high when no key is pressed and when driven as inputs (tri-stated in the SV with `4'bzzzz`).
+
+### Two-phase scanning (7-state FSM)
+
+The scan runs at `clk` (expected `clk1ms`, ~1 kHz):
+
+| State | cols | rows | Action |
+|---|---|---|---|
+| `S_IDLE` | driven 0 | tri-state | Monitor rows; any row goes low → key detected, go to `S_DEBOUNCE` |
+| `S_DEBOUNCE` | driven 0 | tri-state | Wait 15 cycles (≈15 ms); if rows go high again → bounced, back to `S_IDLE` |
+| `S_LATCH_ROW` | tri-state | driven 0 | Capture `row_latch = rows`; swap drive direction |
+| `S_SETTLE` | tri-state | driven 0 | Wait 2 cycles for GPIO to settle after direction swap |
+| `S_LATCH_COL` | tri-state | driven 0 | Capture cols; run `decode_key` → latch `pass`; assert `Enter = 0` |
+| `S_PRESSED` | driven 0 | tri-state | Hold `Enter = 0` while key is held; wait for rows to go high (release) |
+| `S_REL_DEBOUNCE` | driven 0 | tri-state | Wait 15 cycles for release to settle; deassert `Enter = 1` → back to `S_IDLE` |
+
+**Phase 1 (S_IDLE → S_LATCH_ROW):** All columns are driven low (`cols_oe=1`, `cols=4'b0000`). Rows are tri-stated. When a key is pressed it shorts its row wire to its column wire, pulling that row pin to 0V. This identifies **which row** the pressed key is in.
+
+**Phase 2 (S_LATCH_ROW → S_LATCH_COL):** All rows are now driven low (`rows_oe=1`) and columns are tri-stated. The key short now pulls the column pin to 0V. This identifies **which column** the key is in.
+
+### How `Enter` is generated
+
+`Enter` is active-low and is driven entirely inside the FSM:
+
+1. **`Enter = 1`** in `S_IDLE`, `S_DEBOUNCE`, `S_LATCH_ROW`, `S_SETTLE` (key not yet confirmed).
+2. **`Enter = 0`** asserted in `S_LATCH_COL` — exactly when both row and column are known and `pass` is latched. This is the moment a valid key press is confirmed.
+3. **`Enter = 0` held** through `S_PRESSED` — the key is physically down.
+4. **`Enter = 1`** deasserted at the end of `S_REL_DEBOUNCE` — after 15 cycles of stable release.
+
+`Enter` is therefore a level signal: low for the full duration the key is pressed and stably released. It maps to `enter_al` in `lab_2.sv`, which is then passed to `one_pulse_generator` to produce a single clean `enter_d` pulse for the rest of the design.
+
+### How key values are decoded from pin numbers
+
+**Step 1 — priority encode (active-low one-hot → 2-bit binary):**
+
+```sv
+function automatic [1:0] encode4 (input [3:0] al_onehot);
+    casez (~al_onehot)
+        4'b???1 : encode4 = 2'd0;   // bit 0 pulled low
+        4'b??10 : encode4 = 2'd1;   // bit 1 pulled low
+        4'b?100 : encode4 = 2'd2;   // bit 2 pulled low
+        4'b1000 : encode4 = 2'd3;   // bit 3 pulled low
+    endcase
+endfunction
+```
+
+This converts which GPIO line went low into a 2-bit index. `encode4(row_latch)` gives a 2-bit row index; `encode4(cols)` gives a 2-bit column index.
+
+**Step 2 — decode_key lookup table ({row, col} → hex digit):**
+
+```sv
+case ({r, c})   // r=encode4(row), c=encode4(col)
+    4'hF: 4'h1    4'hE: 4'h2    4'hD: 4'h3    4'hC: 4'hA
+    4'hB: 4'h4    4'hA: 4'h5    4'h9: 4'h6    4'h8: 4'hB
+    4'h7: 4'h7    4'h6: 4'h8    4'h5: 4'h9    4'h4: 4'hC
+    4'h3: 4'hE    4'h2: 4'h0    4'h1: 4'hF    4'h0: 4'hD
+endcase
+```
+
+**Why the indexing appears reversed:** The physical keypad top row (containing `1 2 3 A`) connects to `GPIO_0[31:28]` as `rows[3:0]`, with the top row on `GPIO_0[31]` = `rows[3]`. `encode4` returns 3 for this row. Similarly, the left column (containing `1 4 7 E`) connects to `GPIO_0[35]` = `cols[3]`, which encodes to 3. The decode_key table maps `{r=3, c=3}` = `4'hF` → `4'h1`, correctly giving key `1` for the top-left position.
+
+The full mapping from physical position to GPIO to decoded value:
+
+| Physical key | Physical position | Active GPIO line | encode4 result | decode_key output |
+|---|---|---|---|---|
+| `1` | Row 1, Col 1 | rows[3]=GPIO_0[31], cols[3]=GPIO_0[35] | r=3, c=3 | `4'h1` |
+| `D` *(terminator)* | Row 4, Col 4 | rows[0]=GPIO_0[28], cols[0]=GPIO_0[32] | r=0, c=0 | `4'hD` |
+| `0` | Row 4, Col 2 | rows[0]=GPIO_0[28], cols[2]=GPIO_0[34] | r=0, c=2 | `4'h0` |
+| `5` | Row 2, Col 2 | rows[2]=GPIO_0[30], cols[2]=GPIO_0[34] | r=2, c=2 | `4'h5` |
+
+**Terminator key `D`:** bottom-right of the keypad → `rows[0]` & `cols[0]` both go low → `encode4` gives r=0, c=0 → `decode_key(4'h0)` = `4'hD`. This is the key the user presses to confirm their password entry.
 
 ### Why this file exists
-The rationale is architectural cleanliness:
-- `one_pulse_generator.sv` should not know anything about lock rules
-- `lock_validation.sv` should not know how the pushbutton is debounced
-- `lab_2.sv` becomes the place where both independent blocks are wired together
-
-This is a better hierarchy because it keeps each child module single-purpose.
+Decouples the physical keypad scanning from all higher-level logic. The rest of the design sees `switches` + `enter_al` — identical interface to the forced-signal testbench approach (`force uut.switches / uut.enter_al`).
 
 ### Relationship to other files
-- **instantiates** `codeStorage.sv`
-- **instantiates** `access_permission_wrapper.sv`
-- **instantiates** `lock_validation.sv`
-- is the active **top-level entity** in `lab_2.qsf`
+- **instantiated by** `lab_2.sv`
+- drives `switches` (`pass`) and `enter_al` (`Enter`) into `access_permission_wrapper` and `one_pulse_generator`
 
 ---
 
-## 2) `one_pulse_generator.sv`
+## 3) `one_pulse_generator.sv`
 
 ### What it does
-This module generates a **debounced one-pulse signal** from the active-low enter button (`enter_al`).
+Generates a debounced one-pulse signal (`enter_d`) from the active-low enter button (`enter_al`).
 
-### Main logic behind it
-Mechanical buttons do not produce a perfectly clean transition. When pressed, they may bounce and produce multiple quick transitions. If the design directly used that raw signal, the system could count one press multiple times.
+### Main logic
+5-state FSM + 4-bit counter. Debounce window = 15 `clk1ms` cycles = **15 ms**. Produces exactly one `enter_d` pulse per valid press regardless of button bounce.
 
-So this file exists to:
-
-1. **filter / qualify the button press** using a small FSM and a counter
-2. **generate exactly one pulse** (`enter_d`) for a valid press
-3. **provide that clean pulse** as an output for whatever higher-level module needs it
-
-### Internal structure
-- FSM states `S0` to `S4` manage the press/release sequence
-- A `counter` instance is used as a timing element
-- `done_clk = &ctr` detects when the debounce wait interval has completed
-- `enter_d` becomes the clean one-cycle pulse that other modules can trust
-
-### Why this file is separate
-The rationale is modularity:
-- **button handling** is different from **password checking**
-- splitting them makes the design easier to debug and easier to change
-- the same one-pulse logic could be reused elsewhere if needed
+### Why this file exists
+Button handling (debounce, one-pulse generation) is separate from password checking logic. The same pulse generator is reused anywhere clean enter detection is needed.
 
 ### Relationship to other files
-- **uses** `counter` IP/module
-- is **instantiated by** `lock_validation.sv`
-- acts like the front-end of the lock-entry pipeline
+- **uses** `counter` IP
+- **instantiated by** `lock_validation.sv`
 
 ---
 
-## 3) `lock_validation.sv`
+## 4) `lock_validation.sv`
 
 ### What it does
-This file contains the FSM that decides whether the entered lock sequence is valid or invalid.
+FSM that decides whether the entered digit sequence is correct or incorrect by comparing each digit against the stored password from RAM.
 
-### Main logic behind it
-The purpose of this module is to keep **all password/sequence checking rules** in one place.
-It receives:
+### Main logic
+4-state FSM:
+- **S0** — still correct so far; advance on each matching digit
+- **S1** — success state; asserts `correct`
+- **S2** — a mismatch or incomplete entry; waits for the attempt to finish
+- **S3** — failure state; asserts `error`
 
-- the raw enter input `enter_al`
-- the synchronous reset input `srst`
-- the current expected code value `code` (currently supplied from `codeStorage` through `lab_2.sv`)
-- the current user-entered value `switches`
-- a `done` indication
+Internally instantiates `one_pulse_generator` to produce the clean `enter_d` pulse.
 
-and produces:
+Terminator key: `4'hD` (bottom-right keypad key). When `switches == 4'hD`, the FSM checks whether all digits matched and transitions to S1 (success) or S3 (failure).
 
-- `enter_d`
-- `correct`
-- `error`
-- `state_regt` for visibility/debugging
-
-### Current FSM interpretation
-The current version uses a 4-state approach:
-
-- **S0**: still correct so far
-- **S1**: success state, asserts `correct`
-- **S2**: an error or incomplete ending has happened, so wait for the attempt to finish
-- **S3**: failure state, asserts `error`
-
-### Important design idea
-This file now owns the full validation path input side: it internally generates `enter_d` using `one_pulse_generator`, then uses that clean pulse in the validation FSM.
-It also supports a synchronous reset path through `srst`, allowing the validation FSM to return to `S0` on a clock edge without requiring the asynchronous reset.
-
-### Why this file exists separately
-The rationale is separation of concerns:
-- `one_pulse_generator.sv` still handles **how input is captured**
-- `lock_validation.sv` handles **what the input means**, while embedding the pulse generator it depends on
-
-This makes it easier to change the password-checking algorithm without touching the debounce logic.
+### Why this file exists
+All password-checking rules are in one place. `lock_validation` answers: **was the entry right or wrong?** `access_permission` answers: **what should the system do next?**
 
 ### Relationship to other files
-- **instantiated in** `lab_2.sv`
+- **instantiated by** `lock_validation_wrapper.sv`
 - **instantiates** `one_pulse_generator.sv`
-- logically feeds status signals into higher-level control logic such as `access_permission.sv`
+- drives `correct`, `error`, `enter_d_raw` up to the wrapper
 
 ---
 
-## 4) `access_permission.sv`
+## 5) `lock_validation_wrapper.sv`
 
 ### What it does
-This module is a **control FSM for access results, user access flow, and supervisor access flow**.
-It decides what happens after the system learns whether an attempt was correct or wrong.
+Wraps `lock_validation` and `codeStorage` together, and applies security gating: blocks entry while locked and no supervisor key is present.
 
-### Main logic behind it
-This file is not comparing the code itself. Instead, it uses already-generated status inputs such as:
-
-- `correct`
-- `error`
-- `locked`
-- `timeOut`
-- `key`
-- `enter`
-- `srst_access` (synchronous reset for the access-permission FSM)
-
-and turns them into system-level control outputs such as:
-
-- `Err_LED`
-- `Corr_LED`
-- `increment` (likely failure count increment)
-- `srst` (reset for timeout/counter logic)
-- `S` (region / mode selection signal used by other logic)
-
-### Design rationale
-This file expresses the **access policy** of the system.
-
-In other words:
-- `lock_validation.sv` answers: **was the entry right or wrong?**
-- `access_permission.sv` answers: **what should the overall system do next?**
-
-This is a good architectural split because policy logic often changes independently from the lower-level checking logic.
-
-### Observed behavior from the FSM
-The module appears to:
-- wait for certain combinations of `locked`, `key`, and `enter`
-- distinguish between normal user entry and supervisor entry
-- use a shared supervisor authentication state
-- move to true supervisor unlocked / locked states after successful supervisor authentication
-- react differently to success vs failure
-- control timeout reset behavior
-- increment a failure-related signal when authentication fails on the user path
-- support a named synchronous reset path (`srst_access`) back to `S0`
-
-### Relationship to other files
-- conceptually consumes results from `lock_validation.sv`
-- may work with counters/timers outside this file
-- acts as a system supervisor for access outcome handling
-
----
-
-## 5) `access_permission_wrapper.sv`
-
-### What it does
-This file is a wrapper around `access_permission.sv` that provides the support logic needed for the `locked` and `timeOut` inputs.
-
-### Main logic behind it
-The wrapper instantiates `access_permission` and builds the missing environment around it:
-
-- a **20-bit timeout counter**
-- a **3-bit failure counter**
-
-The intended behavior is:
-
-- `timeOut = 1` when `twentyBitsCounter == 1000000`
-- the 20-bit timeout counter is cleared by `srst`
-- `locked = 1` when `threeBitsCounter == 4`
-- the 3-bit failure counter increments when `increment = 1`
-- the 3-bit failure counter is cleared by `srst1`
+### Main logic
+- `enter_d = enter_d_raw && (!locked || key)` — gate: blocked when `locked && !key`
+- `lock_validation.srst = rst_lv | (locked && !key) | cp_srst_lv` — holds FSM in S0 when locked without supervisor key, or during change_password ENTRY
+- `rst_codeNum = rst_lv || !resetN || cp_ctrRst` — synchronous reset for codeStorage counter
+- Exposes `done` (codeStorage counter at 9) and the gated `enter_d` upward
 
 ### Why this file exists
-The rationale is to avoid putting timer and lockout counting logic directly inside `access_permission.sv`.
-`access_permission.sv` stays focused on policy/state transitions, while the wrapper provides the counter-based conditions it depends on.
+Keeps the security gating (locked-state blocking) and the RAM address reset logic separate from `lock_validation`'s digit-comparison FSM.
 
 ### Relationship to other files
-- **instantiates** `access_permission.sv`
-- generates the `timeOut` and `locked` signals consumed by `access_permission.sv`
-- exposes `increment`, `srst`, `S`, and the access-permission outputs to `lab_2.sv`
+- **instantiated by** `access_permission_wrapper.sv`
+- **instantiates** `lock_validation.sv` and `codeStorage.sv`
 
 ---
 
-## 6) `supervisor_requests.sv`
+## 6) `codeStorage.sv`
 
 ### What it does
-This file is a small supervisor-session request block intended to keep supervisor command requests outside `access_permission.sv`.
+Provides a RAM access wrapper with automatic address stepping: `rdaddress = rStartingAddress + ctr`, `wraddress = wStartingAddress + ctr`.
 
-### Main logic behind it
-- `clk`
-- `rstN`
-It takes:
-- the current `access_permission` state
-- a compact `cmd_request`-style input from a future UART/Nios-V black-box decoder
+### Main logic
+Combines a `ram` instance (64×4 bit, behavioral simulation model `ram_sim.v`) with a `counter` instance for address progression. The counter advances once per debounced `enter_d` pulse (`clk_en = enter_d`). `done` fires when `ctr == 9` (max sequence length).
 
-and converts them into a compact `cmd_request[1:0]` signal with meanings like:
-and converts them into a compact `cmd_request[2:0]` signal with meanings like:
-- `0` = no request
-- `1` = change user password
-- `2` = exit
-- `3` = unlock
-- `4` = change supervisor password
+End-of-code marker stored in RAM: `4'hD` (= `4'b1101` = 13).
 
 ### Why this file exists
-The rationale is to keep `access_permission.sv` focused on policy states while moving supervisor requests into a separate module.
+Simplifies sequential reading/writing of multi-digit code sequences. The starting address selects which RAM region to read (user A, user B, supervisor A, supervisor B).
 
-### Current note
-At the moment this file is a small FSM. Once a valid supervisor request is accepted, it stays in that request state until reset or an exit request occurs. The idea is that a future UART/Nios-V black-box decoder provides a compact request code directly, and this file latches and filters it based on the current access-permission state.
+### Relationship to other files
+- **uses** `ram_sim.v` (behavioral model for simulation) / `ram.v` (synthesis)
+- **uses** `counter` IP
+- **instantiated by** `lock_validation_wrapper.sv`
 
 ---
 
-## 7) `codeStorage.sv`
+## 7) `access_permission.sv`
 
 ### What it does
-This module provides a simple **RAM access wrapper with automatic address stepping**.
+Control FSM for the overall access flow — user authentication, supervisor authentication, session management, and output control.
 
-### Main logic behind it
-The file combines:
+### Main logic
+7-state FSM (S4 unused after S3/S4 merge):
 
-- a `ram` instance for data storage
-- a `counter` instance for address progression
+| State | Role |
+|---|---|
+| S0 | Idle — wait for first digit press |
+| S1 | User authentication in progress |
+| S2 | Supervisor authentication in progress |
+| S3 | Supervisor session (handles both locked and unlocked via `input_cond[2]`) |
+| S5 | Error — assert `Err_LED` for 1 cycle → S0 |
+| S6 | Correct — assert `Corr_LED` for 1 cycle → S0 |
 
-It computes:
-
-- `rdaddress = rStartingAddress + ctr`
-- `wraddress = wStartingAddress + ctr`
-
-So instead of manually supplying every read/write address, the design can provide a starting point and let the internal counter step through successive locations.
-
-### Why this is useful
-This is especially helpful for passwords or code sequences because they are multi-digit values stored across multiple memory addresses.
-
-The rationale behind this file is:
-- simplify sequential reading/writing of code digits
-- avoid repeating address increment logic elsewhere
-- isolate memory-management details from the rest of the design
-
-### Current note from comments
-The comments suggest this memory may be intended for:
-- temporary password storage
-- storing a new password before verification
-- handling variable password length
-- possibly using `1010` as an end-of-code marker
-
-So this file is likely the data-storage side of a larger password-management feature.
+Key behaviors:
+- S0→S1: first user digit press (`key=0, locked=0, enter=1`)
+- S0→S2: supervisor key present + first digit (`key=1, enter=1`)
+- S1: `key=1` → abort to S0; `timeOut` → abort to S0; `correct` → S6; `error` → S5, increment failure counter
+- S2: `key=0` → abort to S0; `correct` → S3; `error` → S5
+- S3: exit via `srst_access` (driven by `exit_req` from `supervisor_requests`); unlock via `unlock_req`
 
 ### Relationship to other files
-- **uses** `ram` IP/module
-- **uses** `counter` IP/module
-- in the current top-level wiring, it supplies `code` and `done` into `lock_validation.sv`
-- its `clk_en` is driven by `enter_d`, so the stored-code address advances once per debounced enter pulse
-- supports higher-level password entry or password update logic
+- **instantiated by** `access_permission_wrapper.sv`
+- drives `rst_lv`, `increment`, `rst_timeoutCtr`, `session_active`, `state_p` upward
 
 ---
 
-## 8) `leds.sv`
+## 8) `access_permission_wrapper.sv`
 
 ### What it does
-Provides the LED output driver for the system. Takes the raw `corr_led` and `err_led` signals from `access_permission` and drives physical LED outputs.
+Provides the support logic around `access_permission`: timeout counter, failure counter, address mux for RAM region selection, and the `lock_validation_wrapper` instance.
 
-### Main logic behind it
-Uses the 4-bit `counter` IP to generate an internal slow clock (`clk_slow`) from the system clock input:
-
-- Counter counts 0 → 13, resets on 14: `assign sclr = (q > 4'd12)` → **14-cycle period**
-- Output: `assign clk_slow = (q > 4'd6)` → high for cycles 7–13, low for 0–6 → **exact 50% duty cycle**
-- At `clk1ms` input: `clk_slow` period = 14 ms
-
-### Current state
-The slow clock generation is complete. The LED output logic (`corr_led_out`, `err_led_out`) is not yet implemented — pending decision on blinking vs. static behavior.
+### Main logic
+- **Timeout counter:** `thirteenBitsCtr` (13-bit LPM); fires at 5 000 `clk1ms` cycles = 5 s
+- **Failure counter:** `ThreeBitsCounter` (3-bit LPM); `locked = (ctr == 4)`. Reset by `unlock_req | ap_rst_failureCtr | rst_failureCtr`. Port renamed `clk_en → cnt_en` so `sclr` always fires regardless of `increment`.
+- **Address mux:** `rStartingAddress = cp_active ? target_addr : {key, active_bit, 4'b0000}`; `active_bit` is `user_active` or `super_active` (flipped on `cp_complete`)
+- **Address swap registers:** `user_active`, `super_active` — no `resetN` reset (survive restart), only flip on `cp_complete`
+- `effective_rst_lv = rst_lv | srst_access` ensures `srst_access` resets all submodules
 
 ### Relationship to other files
-- **uses** `counter` IP/module
-- consumes `corr_led` / `err_led` from `access_permission_wrapper` (via `lab_2.sv`)
+- **instantiated by** `lab_2.sv`
+- **instantiates** `access_permission.sv`, `lock_validation_wrapper.sv`, `thirteenBitsCtr`, `ThreeBitsCounter`
+
+---
+
+## 9) `supervisor_requests.sv`
+
+### What it does
+A menu-reader FSM that decodes the supervisor's single-digit keypad command during a supervisor session (S3).
+
+### Main logic
+Waits for `session_active = 1`, then on the next `enter_d` pulse decodes `switches`:
+
+| `switches` | Output asserted | Command |
+|---|---|---|
+| `4'b0001` | `change_user_req` | Change user password |
+| `4'b0010` | `exit_req` | Exit supervisor session → S0 |
+| `4'b0011` | `unlock_req` | Clear failure counter |
+| `4'b0100` | `change_super_req` | Change supervisor password |
+
+Holds the output until `cp_done` fires (change complete or failed) or `exit_req` resets the session.
+
+### Why this file exists
+Keeps supervisor command decoding outside `access_permission.sv`, which stays focused on FSM transitions and policy.
+
+### Relationship to other files
+- **instantiated by** `lab_2.sv`
+- drives `exit_req` → `srst_access` in `lab_2.sv`; `unlock_req`, `change_user_req`, `change_super_req` directly
+
+---
+
+## 10) `change_password.sv`
+
+### What it does
+Manages the full password-change flow: write new password to inactive RAM region, verify by re-entry, then signal the wrapper to atomically swap the active region pointer.
+
+### Main logic
+5-state FSM: `IDLE → ENTRY → VERIFY → DONE / ERROR`
+
+- **IDLE:** waits for `start`. On `start` (Mealy): resets counter and `lock_validation`, goes to ENTRY.
+- **ENTRY:** `cp_active=1`, `srst_lv=1`, `wren=1`; writes `switches` to inactive region on each `enter_d`. Exits to VERIFY on `switches==4'hD` or `done`.
+- **VERIFY:** `cp_active=1`; `lock_validation` compares re-entered digits against the inactive region. Exits to DONE on `lv_correct`, ERROR on `lv_error`.
+- **DONE:** asserts `cp_complete` for 1 cycle → wrapper flips active pointer → IDLE.
+- **ERROR:** asserts `cp_fail` for 1 cycle → supervisor session preserved → IDLE.
+
+`target_addr = active_addr ^ 6'b010000` — computed inside the module.
+
+### Why this file exists
+Isolates the multi-phase write-verify-swap sequence from the supervisor session logic. `supervisor_requests` only needs to signal which password to change; `change_password` handles all timing.
+
+### Relationship to other files
+- **instantiated by** `lab_2.sv`
+- drives `cp_active`, `wren`, `dataIn`, `target_addr`, `ctrRst`, `srst_lv`, `cp_complete`, `cp_fail` into `lab_2.sv` and `access_permission_wrapper.sv`
+
+---
+
+## 11) `leds.sv`
+
+### What it does
+Translates 1-cycle pulse events from `access_permission` and other modules into human-visible LED output patterns.
+
+### Main logic
+6-state FSM driven by `twelveBitsCounter` IP (12-bit, 1 kHz):
+
+| State | LED output | Duration | Transition |
+|---|---|---|---|
+| IDLE | all off | — | on `corr_in` → CORR_HOLD; on `err_in` → BLINK_ON; on `timeout_in` → TIMEOUT_ON |
+| CORR_HOLD | `Corr_LED=1` | 3 000 cycles (3 s) | → IDLE |
+| BLINK_ON | `Err_LED=1` | 250 cycles (250 ms) | → BLINK_OFF |
+| BLINK_OFF | `Err_LED=0` | 250 cycles (250 ms) | if 3 blinks done → IDLE; else → BLINK_ON |
+| TIMEOUT_ON | `Err_LED=1` | 512 cycles (ctr[9]) | → TIMEOUT_OFF |
+| TIMEOUT_OFF | `Err_LED=0` | 512 cycles (ctr[9]) | → IDLE |
+
+Additional output: `Lock_LED = locked_in` — purely combinational, always reflects lockout state.
+
+`corr_in` sources (OR'd in `lab_2.sv`): user auth success (`ap_corr_pulse`), supervisor auth success (`sup_corr_pulse`), password change verified (`cp_complete`), system unlocked (`unlock_req`).
+
+### Relationship to other files
+- **uses** `twelveBitsCounter` IP (12-bit LPM counter)
+- **instantiated by** `lab_2.sv`
+- inputs: `corr_in`, `err_in`, `timeout_in`, `locked_in`; outputs: `Corr_LED`, `Err_LED`, `Lock_LED`
+
+---
+
+## 12) `lab_2.sv` (top-level)
+
+### What it does
+Top-level integration module. Connects all submodules, clock divider, and keypad interface.
+
+### Main logic
+Wiring only — no FSM states. Key connections:
+- `clock1` → `clk1ms` used by all submodules
+- `keypad_interface` → `switches`, `enter_al`
+- `access_permission_wrapper` → `correct`, `error`, `locked`, `timeOut`, `session_active`, `enter_d`, `done`, `active_addr`, all reset/control signals
+- `supervisor_requests` → `exit_req`, `unlock_req`, `change_user_req`, `change_super_req`; `exit_req` OR'd with external `srst_access` before feeding to wrapper
+- `change_password` → `cp_active`, `cp_wren`, `dataIn_cp`, `target_addr`, `cp_ctrRst`, `cp_srst_lv`, `cp_complete`, `cp_fail`
+- `leds` → `Corr_LED`, `Err_LED`, `Lock_LED`; `corr_in = ap_corr_pulse | sup_corr_pulse | cp_complete | unlock_req`
+- `sup_corr_pulse` edge detector: 1-cycle pulse on rising edge of `session_active`
+
+### Relationship to other files
+- **instantiates** all modules above
+- is the active **top-level entity** in `lab_2.qsf`
+- mapped to DE1-SoC pins via `DE1_SoC_golden_top.v`
 
 ---
 
 ## Design relationships summary
 
-### Active logic flow
-In terms of system intent, the flow is roughly:
-
-1. **User input arrives from button/switches**
-2. `lab_2.sv` uses `codeStorage.sv` to provide the stored code value and the `done` indication
-3. `lab_2.sv` forwards those signals to `lock_validation.sv`
-4. inside `lock_validation.sv`, `one_pulse_generator.sv` cleans the enter button and creates `enter_d`
-5. `enter_d` is also used as `codeStorage`'s `clk_en`, so code storage advances once per valid entry pulse
-6. `lock_validation.sv` checks whether the entered sequence is correct
-7. `lab_2.sv` derives an access-enter condition `enter_d && (switches == 11)` and sends it to `access_permission_wrapper.sv`
-8. `access_permission_wrapper.sv` builds the timeout and lock counters around `access_permission.sv`
-9. `access_permission.sv` decides how the system should react to success/failure and includes true supervisor session states
-10. `supervisor_requests.sv` is reserved to translate supervisor commands using those true supervisor states (`S3`/`S4`)
+```
+50 MHz clk
+    └── clock1.sv → clk1ms (1 kHz)
+                        │
+                ┌───────┴────────┐
+        keypad_interface      access_permission_wrapper
+           (cols/rows)            │
+               │          ┌──────┴────────────────────────┐
+         switches +    thirteenBitsCtr  ThreeBitsCounter  lock_validation_wrapper
+         enter_al          (timeout)      (failures)         │
+                │                                   ┌────────┴────────────┐
+                └───────────────────────────  codeStorage      lock_validation
+                                              (RAM+ctr)          (digit check)
+                                                                      │
+                                                              one_pulse_generator
+                                                                (debounce)
+supervisor_requests ──── change_password
+        │                      │
+      exit_req           cp_active/wren/dataIn/...
+        │
+    srst_access → access_permission (FSM S0–S6)
+                        │
+                      leds.sv → Corr_LED / Err_LED / Lock_LED
+```
 
 ---
 
@@ -369,83 +419,13 @@ The project is organized around **functional responsibility**:
 
 - **top-level wiring** → `lab_2.sv`
 - **clock division** → `clock1.sv`
+- **keypad scanning** → `keypad_interface.sv`
 - **signal conditioning** → `one_pulse_generator.sv`
 - **verification logic** → `lock_validation.sv`
-- **access wrapper / derived conditions** → `access_permission_wrapper.sv`
-- **system reaction / policy** → `access_permission.sv`
-- **supervisor request handling** → `supervisor_requests.sv`
+- **RAM + address stepping** → `codeStorage.sv`
+- **lock gating + submodule wiring** → `lock_validation_wrapper.sv`
+- **access wrapper / timer / failure counter** → `access_permission_wrapper.sv`
+- **system reaction / policy FSM** → `access_permission.sv`
+- **supervisor command decoding** → `supervisor_requests.sv`
 - **password change flow** → `change_password.sv`
 - **LED output driving** → `leds.sv`
-- **memory / sequence storage** → `codeStorage.sv`
-
-This is a good hardware-design pattern because it:
-- improves readability
-- reduces coupling between unrelated logic
-- makes testing easier
-- allows each FSM or block to evolve independently
-
----
-
-## Notes
-
-- The current Quartus top-level entity in `lab_2.qsf` is set to **`lab_2`**, which now serves as the integration layer between the one-pulse generator and the lock validator.
-- The `first trial/` files appear to be historical reference versions rather than the main active implementation.
-- Backup files with `.bak` extensions are not covered here because they are not `.sv` source files.
-
----
-
-## Code Review Notes
-
-### 1. Debounce counter too short — `one_pulse_generator.sv`
-
-`counter` is a 4-bit IP (`lpm_width = 4`). `done_clk = &ctr` fires when `ctr = 4'b1111 = 15`. At 50 MHz that is **300 ns** — far too short to debounce a physical button (needs ~10–20 ms ≈ 500K–1M cycles). A wider dedicated debounce counter is needed, similar to `TwentyBitsCounter`.
-
-### 2. `supervisor_requests.sv` is never instantiated
-
-The module exists and is listed in the QSF but is wired to nothing. `lab_2.sv` never instantiates it and `access_permission` has no `cmd_request` input port. It is completely disconnected from the design.
-
-### 3. States S3/S4 in `access_permission` are dead-end states — `access_permission.sv`
-
-Once the FSM enters a supervisor session (S3 or S4), the only exit is `rstN` or `srst_access`. There are no internal transitions out. The comment on S3 acknowledges this (`// move it later to supervisor requests`) but since `supervisor_requests` is not connected, there is currently no way to exit a supervisor session gracefully.
-
-### 4. `srst1` hardwired to 0 — `lab_2.sv` line 17
-
-The failure counter (`ThreeBitsCounter`) in `access_permission_wrapper` never resets. Once `locked = 1` (4 failures), the only recovery is a full `resetN`. The TODO comment acknowledges this but also means the supervisor path cannot clear the lockout, which defeats its purpose.
-
-### 5. Write path permanently disabled — `lab_2.sv` line 12
-
-`wren = 1'b0` and `dataIn = 4'b0` are hardcoded. Password changing is completely unimplemented. The comment block at the bottom of `codeStorage.sv` describes the intended behaviour but none of it is wired up yet.
-
-### 6. `done = 1` persists into S2 in `lock_validation`
-
-When `done = 1` (ctr = 9) and the digit is wrong, the FSM goes to S2. But `done` is still 1 in S2 (ctr has not changed), so the very next `enter_d` immediately transitions to S3 — the user gets no extra entry chance at max length. This may be intentional but is worth confirming.
-
-### 7. Magic number in `enter_access` — `lab_2.sv` line 16
-
-```sv
-assign enter_access = enter_d && (switches == 4'd11);
-```
-
-`4'd11` (`4'b1011`) is undocumented. It is unclear why 11 specifically triggers the access-permission path. A named parameter or constant would make the intent explicit.
-
-### 8. S2 and S3 share the same memory region — `access_permission.sv`
-
-Both supervisor authentication (S2) and the unlocked supervisor session (S3) drive `S = 2'b01`, pointing to RAM region starting at address 10. S4 (locked supervisor session) drives `S = 2'b10` (address 20). It is not documented why the locked supervisor session requires a different memory region — this needs a clear design decision on what each region stores.
-
-### 9. Timeout counter width — `access_permission_wrapper.sv`
-
-The current 20-bit counter reaches 1,000,000 cycles ≈ **20 ms** at 50 MHz. For a 5-second timeout the target count is 250,000,000 cycles, which requires a **28-bit counter** (`2^28 = 268,435,456 > 250,000,000`). `TwentyBitsCounter` must be replaced with a 28-bit variant and the compare value updated to `28'd250_000_000`.
-
-### Summary table
-
-| # | File | Severity | Issue |
-|---|---|---|---|
-| 1 | `one_pulse_generator.sv` | **High** | 4-bit debounce = 15 cycles, too short for real hardware |
-| 2 | `lab_2.sv` | **High** | `supervisor_requests` not instantiated |
-| 3 | `access_permission.sv` | **High** | S3/S4 are dead-end states with no exit |
-| 4 | `lab_2.sv` line 17 | **High** | `srst1 = 0` means lockout is permanent |
-| 5 | `lab_2.sv` line 12 | Medium | Write path (`wren = 0`) unimplemented |
-| 6 | `lock_validation.sv` | Low | `done = 1` in S2 forces immediate error on next press |
-| 7 | `lab_2.sv` line 16 | Low | Magic number `switches == 11` undocumented |
-| 8 | `access_permission.sv` | Low | S2 and S3 share same memory region `S = 01` |
-| 9 | `access_permission_wrapper.sv` | Medium | 20-bit counter too narrow for 5 s timeout; needs 28 bits |

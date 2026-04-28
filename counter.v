@@ -38,12 +38,12 @@
 `timescale 1 ps / 1 ps
 // synopsys translate_on
 module counter (
-	clk_en,
+	cnt_en,
 	clock,
 	sclr,
 	q);
 
-	input	  clk_en;
+	input	  cnt_en;
 	input	  clock;
 	input	  sclr;
 	output	[3:0]  q;
@@ -52,7 +52,7 @@ module counter (
 	wire [3:0] q = sub_wire0[3:0];
 
 	lpm_counter	LPM_COUNTER_component (
-				.clk_en (clk_en),
+				.clk_en (1'b1),
 				.clock (clock),
 				.sclr (sclr),
 				.q (sub_wire0),
@@ -60,7 +60,7 @@ module counter (
 				.aload (1'b0),
 				.aset (1'b0),
 				.cin (1'b1),
-				.cnt_en (1'b1),
+				.cnt_en (cnt_en),
 				.cout (),
 				.data ({4{1'b0}}),
 				.eq (),

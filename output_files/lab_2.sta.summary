@@ -2,52 +2,100 @@
 Timing Analyzer Summary
 ------------------------------------------------------------
 
-Type  : Slow 1100mV 85C Model Setup 'clk'
-Slack : -0.981
-TNS   : -11.774
+Type  : Slow 1100mV 85C Model Setup 'clock1:clk1|sixteenbitsctr:clk1|lpm_counter:LPM_COUNTER_component|cntr_32i:auto_generated|counter_reg_bit[10]'
+Slack : -4.712
+TNS   : -261.900
 
-Type  : Slow 1100mV 85C Model Hold 'clk'
-Slack : 0.378
+Type  : Slow 1100mV 85C Model Setup 'CLOCK_50'
+Slack : -3.756
+TNS   : -156.418
+
+Type  : Slow 1100mV 85C Model Hold 'CLOCK_50'
+Slack : 0.135
 TNS   : 0.000
 
-Type  : Slow 1100mV 85C Model Minimum Pulse Width 'clk'
+Type  : Slow 1100mV 85C Model Hold 'clock1:clk1|sixteenbitsctr:clk1|lpm_counter:LPM_COUNTER_component|cntr_32i:auto_generated|counter_reg_bit[10]'
+Slack : 0.297
+TNS   : 0.000
+
+Type  : Slow 1100mV 85C Model Minimum Pulse Width 'clock1:clk1|sixteenbitsctr:clk1|lpm_counter:LPM_COUNTER_component|cntr_32i:auto_generated|counter_reg_bit[10]'
+Slack : -2.174
+TNS   : -132.716
+
+Type  : Slow 1100mV 85C Model Minimum Pulse Width 'CLOCK_50'
 Slack : -0.394
-TNS   : -7.809
+TNS   : -40.699
 
-Type  : Slow 1100mV 0C Model Setup 'clk'
-Slack : -1.031
-TNS   : -11.633
+Type  : Slow 1100mV 0C Model Setup 'clock1:clk1|sixteenbitsctr:clk1|lpm_counter:LPM_COUNTER_component|cntr_32i:auto_generated|counter_reg_bit[10]'
+Slack : -4.867
+TNS   : -260.330
 
-Type  : Slow 1100mV 0C Model Hold 'clk'
-Slack : 0.394
+Type  : Slow 1100mV 0C Model Setup 'CLOCK_50'
+Slack : -3.666
+TNS   : -153.003
+
+Type  : Slow 1100mV 0C Model Hold 'CLOCK_50'
+Slack : -0.142
+TNS   : -0.142
+
+Type  : Slow 1100mV 0C Model Hold 'clock1:clk1|sixteenbitsctr:clk1|lpm_counter:LPM_COUNTER_component|cntr_32i:auto_generated|counter_reg_bit[10]'
+Slack : 0.293
 TNS   : 0.000
 
-Type  : Slow 1100mV 0C Model Minimum Pulse Width 'clk'
+Type  : Slow 1100mV 0C Model Minimum Pulse Width 'clock1:clk1|sixteenbitsctr:clk1|lpm_counter:LPM_COUNTER_component|cntr_32i:auto_generated|counter_reg_bit[10]'
+Slack : -2.174
+TNS   : -132.342
+
+Type  : Slow 1100mV 0C Model Minimum Pulse Width 'CLOCK_50'
 Slack : -0.394
-TNS   : -8.317
+TNS   : -44.253
 
-Type  : Fast 1100mV 85C Model Setup 'clk'
-Slack : -0.143
-TNS   : -1.036
+Type  : Fast 1100mV 85C Model Setup 'CLOCK_50'
+Slack : -2.698
+TNS   : -63.596
 
-Type  : Fast 1100mV 85C Model Hold 'clk'
-Slack : 0.183
+Type  : Fast 1100mV 85C Model Setup 'clock1:clk1|sixteenbitsctr:clk1|lpm_counter:LPM_COUNTER_component|cntr_32i:auto_generated|counter_reg_bit[10]'
+Slack : -2.551
+TNS   : -125.482
+
+Type  : Fast 1100mV 85C Model Hold 'clock1:clk1|sixteenbitsctr:clk1|lpm_counter:LPM_COUNTER_component|cntr_32i:auto_generated|counter_reg_bit[10]'
+Slack : 0.099
 TNS   : 0.000
 
-Type  : Fast 1100mV 85C Model Minimum Pulse Width 'clk'
-Slack : -0.091
-TNS   : -1.327
-
-Type  : Fast 1100mV 0C Model Setup 'clk'
-Slack : -0.067
-TNS   : -0.263
-
-Type  : Fast 1100mV 0C Model Hold 'clk'
-Slack : 0.172
+Type  : Fast 1100mV 85C Model Hold 'CLOCK_50'
+Slack : 0.181
 TNS   : 0.000
 
-Type  : Fast 1100mV 0C Model Minimum Pulse Width 'clk'
-Slack : -0.090
-TNS   : -1.327
+Type  : Fast 1100mV 85C Model Minimum Pulse Width 'clock1:clk1|sixteenbitsctr:clk1|lpm_counter:LPM_COUNTER_component|cntr_32i:auto_generated|counter_reg_bit[10]'
+Slack : -2.174
+TNS   : -78.466
+
+Type  : Fast 1100mV 85C Model Minimum Pulse Width 'CLOCK_50'
+Slack : -0.092
+TNS   : -6.536
+
+Type  : Fast 1100mV 0C Model Setup 'clock1:clk1|sixteenbitsctr:clk1|lpm_counter:LPM_COUNTER_component|cntr_32i:auto_generated|counter_reg_bit[10]'
+Slack : -2.482
+TNS   : -112.818
+
+Type  : Fast 1100mV 0C Model Setup 'CLOCK_50'
+Slack : -2.151
+TNS   : -52.163
+
+Type  : Fast 1100mV 0C Model Hold 'clock1:clk1|sixteenbitsctr:clk1|lpm_counter:LPM_COUNTER_component|cntr_32i:auto_generated|counter_reg_bit[10]'
+Slack : 0.085
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Hold 'CLOCK_50'
+Slack : 0.171
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Minimum Pulse Width 'clock1:clk1|sixteenbitsctr:clk1|lpm_counter:LPM_COUNTER_component|cntr_32i:auto_generated|counter_reg_bit[10]'
+Slack : -2.174
+TNS   : -76.768
+
+Type  : Fast 1100mV 0C Model Minimum Pulse Width 'CLOCK_50'
+Slack : -0.089
+TNS   : -6.476
 
 ------------------------------------------------------------

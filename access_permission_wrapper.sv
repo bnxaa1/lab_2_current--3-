@@ -27,14 +27,16 @@ module access_permission_wrapper(
     output logic        session_active,
     output logic        enter_d,          // gated debounced keypress; used by supervisor_requests and change_password
     output logic        done,             // codeStorage counter at 9; used by change_password
-    output logic [5:0]  active_addr       // current active region start; used by change_password to compute inactive
+    output logic [5:0]  active_addr,      // current active region start; used by change_password to compute inactive
+    output logic [3:0]  dbg_code,         // RAM dataOut; for FPGA debug display
+    output logic [5:0]  dbg_rAddr         // rStartingAddress; for FPGA debug display
 );
 
     logic [12:0] ThirteenBitsCounter;
     logic [2:0]  threeBitsCounter;
     logic [1:0]  S;                           // region select from access_permission (reserved, unused for addressing)
     logic [5:0]  rStartingAddress, wStartingAddress, normal_rAddr;
-    logic        user_active, super_active; // 0=region A, 1=region B; flipped on cp_complete
+    logic        user_active = 1'b0, super_active = 1'b0; // 0=region A, 1=region B; flipped on cp_complete; initialized to 0 (matches FPGA power-on)
     logic        enter_access;
     logic        rst_timeoutCtr;              // sclr for the 13-bit timeout counter
     logic        ap_rst_failureCtr;          // rst_failureCtr from access_permission (user correct path)
@@ -52,12 +54,10 @@ module access_permission_wrapper(
     assign normal_rAddr     = {key, key ? super_active : user_active, 4'b0000};
     assign active_addr      = normal_rAddr; // pre-mux active region address exposed for change_password
     assign rStartingAddress = cp_active ? target_addr : normal_rAddr;
+    assign dbg_rAddr        = rStartingAddress;
 
-    always_ff @(posedge clk, negedge resetN) begin
-        if (!resetN) begin
-            user_active  <= 1'b0;
-            super_active <= 1'b0;
-        end else if (cp_complete) begin
+    always_ff @(posedge clk) begin
+        if (cp_complete) begin
             if (is_supervisor) super_active <= ~super_active;
             else               user_active  <= ~user_active;
         end
@@ -68,7 +68,7 @@ module access_permission_wrapper(
 
     // ── Timeout and lock thresholds ───────────────────────────────────────────
     assign timeOut       = (ThirteenBitsCounter == 13'd5_000); // 5 s @ 1 kHz
-    assign rst_timeoutCtr   = timeOut | ap_rst_timeoutCtr | srst_access; // self-reset on fire; reset on S0→S1 (user auth start); reset on srst_access (session exit)
+    assign rst_timeoutCtr   = timeOut | ap_rst_timeoutCtr | srst_access | !resetN | (state_p == 3'd0); // self-reset on fire; reset on S0→S1; reset on srst_access; reset on hard restart; held at 0 while idle (S0)
     assign effective_rst_lv = rst_lv | srst_access;              // srst_access propagates reset to all submodules
     assign locked        = (threeBitsCounter    == 3'd4);
 
@@ -83,7 +83,7 @@ module access_permission_wrapper(
     );
 
     ThreeBitsCounter tbc3(
-        .clk_en(increment),
+        .cnt_en(increment),  // gates counting only; clk_en=1'b1 inside IP so sclr always reachable
         .clock(clk),
         /*we should have a rst for the whole wrapper not a signal only for the failure counter*/
         .sclr(rst_failureCtr | ap_rst_failureCtr | unlock_req), // supervisor unlock pulse OR user correct OR external reset
@@ -132,7 +132,8 @@ module access_permission_wrapper(
         .error            (error),
         .correct          (correct),
         .done             (done),
-        .enter_d          (enter_d)
+        .enter_d          (enter_d),
+        .dbg_code         (dbg_code)
     );
 
 endmodule

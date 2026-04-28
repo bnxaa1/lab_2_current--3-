@@ -34,7 +34,7 @@
 //on the Quartus Prime software download page.
 
 
-//lpm_counter DEVICE_FAMILY="Cyclone V" lpm_direction="UP" lpm_port_updown="PORT_UNUSED" lpm_width=3 clk_en clock q sclr
+//lpm_counter DEVICE_FAMILY="Cyclone V" lpm_direction="UP" lpm_port_updown="PORT_UNUSED" lpm_width=3 clock cnt_en q sclr
 //VERSION_BEGIN 25.1 cbx_cycloneii 2025:10:22:10:31:27:SC cbx_lpm_add_sub 2025:10:22:10:31:27:SC cbx_lpm_compare 2025:10:22:10:31:27:SC cbx_lpm_counter 2025:10:22:10:31:27:SC cbx_lpm_decode 2025:10:22:10:31:27:SC cbx_mgl 2025:10:22:10:31:44:SC cbx_nadder 2025:10:22:10:31:27:SC cbx_stratix 2025:10:22:10:31:27:SC cbx_stratixii 2025:10:22:10:31:26:SC  VERSION_END
 // synthesis VERILOG_INPUT_VERSION VERILOG_2001
 // altera message_off 10463
@@ -46,18 +46,18 @@
 //synopsys translate_on
 module  ThreeBitsCounter_cntr
 	( 
-	clk_en,
 	clock,
+	cnt_en,
 	q,
 	sclr) /* synthesis synthesis_clearbox=1 */;
-	input   clk_en;
 	input   clock;
+	input   cnt_en;
 	output   [2:0]  q;
 	input   sclr;
 `ifndef ALTERA_RESERVED_QIS
 // synopsys translate_off
 `endif
-	tri1   clk_en;
+	tri1   cnt_en;
 	tri0   sclr;
 `ifndef ALTERA_RESERVED_QIS
 // synopsys translate_on
@@ -74,7 +74,7 @@ module  ThreeBitsCounter_cntr
 	wire  [0:0]   wire_counter_comb_bita_1sumout;
 	wire  [0:0]   wire_counter_comb_bita_2sumout;
 	wire  aclr_actual;
-	wire cnt_en;
+	wire clk_en;
 	wire [2:0]  data;
 	wire  external_cin;
 	wire  lsb_cin;
@@ -187,7 +187,7 @@ module  ThreeBitsCounter_cntr
 		counter_comb_bita_2.lpm_type = "cyclonev_lcell_comb";
 	assign
 		aclr_actual = 1'b0,
-		cnt_en = 1'b1,
+		clk_en = 1'b1,
 		data = {3{1'b0}},
 		external_cin = 1'b1,
 		lsb_cin = 1'b0,
@@ -207,13 +207,13 @@ endmodule //ThreeBitsCounter_cntr
 `timescale 1 ps / 1 ps
 // synopsys translate_on
 module ThreeBitsCounter (
-	clk_en,
 	clock,
+	cnt_en,
 	sclr,
 	q)/* synthesis synthesis_clearbox = 1 */;
 
-	input	  clk_en;
 	input	  clock;
+	input	  cnt_en;
 	input	  sclr;
 	output	[2:0]  q;
 
@@ -221,8 +221,8 @@ module ThreeBitsCounter (
 	wire [2:0] q = sub_wire0[2:0];
 
 	ThreeBitsCounter_cntr	ThreeBitsCounter_cntr_component (
-				.clk_en (clk_en),
 				.clock (clock),
+				.cnt_en (cnt_en),
 				.sclr (sclr),
 				.q (sub_wire0));
 
@@ -235,8 +235,8 @@ endmodule
 // Retrieval info: PRIVATE: ALOAD NUMERIC "0"
 // Retrieval info: PRIVATE: ASET NUMERIC "0"
 // Retrieval info: PRIVATE: ASET_ALL1 NUMERIC "1"
-// Retrieval info: PRIVATE: CLK_EN NUMERIC "1"
-// Retrieval info: PRIVATE: CNT_EN NUMERIC "0"
+// Retrieval info: PRIVATE: CLK_EN NUMERIC "0"
+// Retrieval info: PRIVATE: CNT_EN NUMERIC "1"
 // Retrieval info: PRIVATE: CarryIn NUMERIC "0"
 // Retrieval info: PRIVATE: CarryOut NUMERIC "0"
 // Retrieval info: PRIVATE: Direction NUMERIC "0"
@@ -255,12 +255,12 @@ endmodule
 // Retrieval info: CONSTANT: LPM_PORT_UPDOWN STRING "PORT_UNUSED"
 // Retrieval info: CONSTANT: LPM_TYPE STRING "LPM_COUNTER"
 // Retrieval info: CONSTANT: LPM_WIDTH NUMERIC "3"
-// Retrieval info: USED_PORT: clk_en 0 0 0 0 INPUT NODEFVAL "clk_en"
 // Retrieval info: USED_PORT: clock 0 0 0 0 INPUT NODEFVAL "clock"
+// Retrieval info: USED_PORT: cnt_en 0 0 0 0 INPUT NODEFVAL "cnt_en"
 // Retrieval info: USED_PORT: q 0 0 3 0 OUTPUT NODEFVAL "q[2..0]"
 // Retrieval info: USED_PORT: sclr 0 0 0 0 INPUT NODEFVAL "sclr"
-// Retrieval info: CONNECT: @clk_en 0 0 0 0 clk_en 0 0 0 0
 // Retrieval info: CONNECT: @clock 0 0 0 0 clock 0 0 0 0
+// Retrieval info: CONNECT: @cnt_en 0 0 0 0 cnt_en 0 0 0 0
 // Retrieval info: CONNECT: @sclr 0 0 0 0 sclr 0 0 0 0
 // Retrieval info: CONNECT: q 0 0 3 0 @q 0 0 3 0
 // Retrieval info: GEN_FILE: TYPE_NORMAL ThreeBitsCounter.v TRUE

@@ -107,8 +107,7 @@ instantiates `clock1`; the top level (`lab_2.sv`) owns that instance.
 vlog -work work counter.v
 vlog -work work thirteenBitsCtr.v
 vlog -work work ThreeBitsCounter.v
-vlog -work work TwentyBitsCounter.v
-vlog -work work ram.v
+vlog -work work ram_sim.v
 ```
 
 ### Step 10 — Compile design files (SystemVerilog, dependency order)
@@ -191,7 +190,7 @@ Or from the ModelSim GUI: **File → Do** → select `sim.do`.
 ```
 === tb_lock_validation_wrapper ===
 [...] Reset done
-[...] Test 1: correct sequence  1-2-3-4-1010
+[...] Test 1: correct sequence  1,2,3,4,D
 [...] >> CORRECT asserted
 [...] Test 1 PASS
 [...] Test 2: wrong digit  9-1010
@@ -218,7 +217,7 @@ Or from the ModelSim GUI: **File → Do** → select `sim.do`.
 | `# Error: cannot find module lpm_counter` | `lpm_ver` library not mapped | Rerun steps 4 and 12 |
 | `# Error: cannot find module altsyncram` | `altera_mf_ver` not mapped | Rerun steps 5 and 12 |
 | `# Error: cannot find module altera_lnsim` | `altera_lnsim_ver` not compiled | Rerun steps 8 and 12 |
-| `correct` never fires | Wrong digit values — check `ramm.mif` contents | User password is `1,2,3,4,1010` |
+| `correct` never fires | Wrong digit values — check `ramm.mif` contents | User password is `1,2,3,4,D` |
 | Simulation runs too slowly | Normal — each digit takes ~40 ms simulated time (debounce) | Let it complete; 5 tests ≈ 4 s simulated time |
 | Tests 2–5 show wrong result | `srst` held too short — FSM/ctr never reset between tests | `sync_reset` must hold `srst` for ≥ 2 ms (2 × `clk1ms`) so `clk1ms`-domain FF captures it; fixed in `tb_lock_validation_wrapper.sv` |
 | Test 1 starts with wrong `ctr` | `resetN` held too short in `apply_reset` — `codeStorage.ctr` never cleared | `resetN` must be held low for ≥ 2 ms; `codeStorage` has no async reset — `sclr` only fires at `clk1ms` posedge; fixed in `tb_lock_validation_wrapper.sv` |

@@ -1,4 +1,8 @@
-# Change Password Feature — Implementation Plan
+# Change Password Feature — Original Implementation Plan
+
+> **Superseded.** This document describes the original plan which included COPY states and a 3-region memory scheme. The final implementation uses a 4-region address-swap approach with no COPY phase. See `md/CHANGE_PASSWORD_DESIGN.md` for the current design.
+
+---
 
 ## Context
 

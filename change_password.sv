@@ -48,7 +48,7 @@ module change_password (input  logic        clk, resetN,
                 dataIn  = switches;
                 if (enter_d) begin
                     clk_en_override = 1'b1;
-                    if (switches == 4'b1010 || done) begin
+                    if (switches == 4'b1101 || done) begin
                         ctrRst     = 1'b1; // Mealy: reset counter and lock_validation on transition to VERIFY; sclr has priority over clk_en
                         srst_lv    = 1'b1;
                         state_next = VERIFY;

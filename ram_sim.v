@@ -23,11 +23,11 @@ module ram (clock, data, rdaddress, wraddress, wren, q);
             mem[i] = 4'd0;
         // User A password — addr 0-4 (region A, key=0, user_active=0)
         mem[0] = 4'd1;  mem[1] = 4'd2;  mem[2] = 4'd3;
-        mem[3] = 4'd4;  mem[4] = 4'd10;
+        mem[3] = 4'd4;  mem[4] = 4'd13;
         // User B (addr 16-31) — blank until change_password writes to it
         // Super A password — addr 32-36 (region A, key=1, super_active=0)
         mem[32] = 4'd2; mem[33] = 4'd0; mem[34] = 4'd2;
-        mem[35] = 4'd6; mem[36] = 4'd10;
+        mem[35] = 4'd6; mem[36] = 4'd13;
         // Super B (addr 48-63) — blank until change_password writes to it
     end
 

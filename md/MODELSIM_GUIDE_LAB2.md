@@ -97,7 +97,8 @@ vlog -work work counter.v
 vlog -work work sixteenbitsctr.v
 vlog -work work thirteenBitsCtr.v
 vlog -work work ThreeBitsCounter.v
-vlog -work work ram.v
+vlog -work work ram_sim.v
+vlog -work work twelveBitsCounter.v
 ```
 
 ### Step 9 — Compile design files (SystemVerilog, dependency order)
@@ -153,6 +154,15 @@ add wave /tb_lab_2/correct
 add wave /tb_lab_2/error
 add wave /tb_lab_2/Corr_LED
 add wave /tb_lab_2/Err_LED
+add wave /tb_lab_2/Lock_LED
+
+add wave -divider "LEDs FSM"
+add wave /tb_lab_2/uut/led1/state_reg
+add wave /tb_lab_2/uut/locked
+add wave /tb_lab_2/uut/timeOut
+add wave /tb_lab_2/uut/ap_corr_pulse
+add wave /tb_lab_2/uut/ap_err_pulse
+add wave /tb_lab_2/uut/sup_corr_pulse
 
 add wave -divider "AP FSM"
 add wave /tb_lab_2/uut/access_state_p
@@ -261,17 +271,20 @@ Or from the GUI: **File → Do** → select `sim_lab2.do`.
 
 [T4] 4 wrong attempts → locked; further user auth blocked
   PASS [T4] locked asserted
+  PASS [T4] Lock_LED asserted while locked
   PASS [T4] correct blocked while locked
 
 [T5] Supervisor unlocks locked system
   PASS [T5] session_active asserted
   PASS [T5] AP FSM in S3
   PASS [T5] system unlocked
+  PASS [T5] Corr_LED on unlock
   PASS [T5] session ended after exit
 
 [T6] Timeout during user auth → back to S0 (long sim wait)
   PASS [T6] no correct after timeout
   PASS [T6] no error after timeout
+  PASS [T6] Err_LED slow blink on timeout
   PASS [T6] AP back to S0
 
 [T7] Supervisor key inserted mid user-auth → abort to S0
@@ -287,6 +300,7 @@ Or from the GUI: **File → Do** → select `sim_lab2.do`.
   PASS [T10] session_active
   PASS [T10] AP FSM in S3
   PASS [T10] correct fired
+  PASS [T10] Corr_LED on supervisor auth
 
 [T11] Change user password — success path
   PASS [T11] cp_active after command
@@ -304,7 +318,7 @@ Or from the GUI: **File → Do** → select `sim_lab2.do`.
   PASS [T13] cp_active cleared
 
 ══════════════════════════════════════════════════
-  ALL 33 CHECKS PASSED
+  ALL 37 CHECKS PASSED
 ══════════════════════════════════════════════════
 ```
 
@@ -314,13 +328,12 @@ Or from the GUI: **File → Do** → select `sim_lab2.do`.
 
 | Region | Address | Password digits |
 |--------|---------|-----------------|
-| User A  (default active) | 0–4    | `1, 2, 3, 4, 10` |
-| User B  (after user swap) | 16–20 | written by T11 |
-| Super A (default active) | 32–36 | `2, 0, 2, 6, 10` |
-| Super B (after super swap)| 48–52 | written by T13 |
+| User A  (default active) | 0–4    | `1, 2, 3, 4, 13` (terminator D at addr 4) |
+| User B  (after user swap) | 16–20 | written by T11 (`5,6,7,8,D`) |
+| Super A (default active) | 32–36 | `2, 0, 2, 6, 13` (terminator D at addr 36) |
+| Super B (after super swap)| 48–52 | written by T13 (`1,1,1,1,D`) |
 
-> T11 writes `5,6,7,8,10` to User B and verifies it before `apply_reset`.  
-> After `apply_reset`, `user_active` resets to 0 (User A), so the original password is active again.
+> T11 writes `5,6,7,8,D` to User B and verifies it. After T11 `apply_reset`, `user_active` persists (still 1, region B active) — `resetN` does **not** reset `user_active`.
 
 ---
 
@@ -330,8 +343,8 @@ Or from the GUI: **File → Do** → select `sim_lab2.do`.
 |---------|-------------|-----|
 | `# Error: cannot find module lpm_counter` | `lpm_ver` not mapped | Re-run Step 3 |
 | `# Error: cannot find module altsyncram` | `altera_mf_ver` not mapped | Re-run Step 4 |
-| `correct` never fires in T1 | Wrong user password in `ramm.mif` | Confirm addr 0–4 = `1,2,3,4,10` |
-| `correct` never fires in T5 | Wrong supervisor password | Confirm addr 32–36 = `2,0,2,6,10` |
+| `correct` never fires in T1 | Wrong user password in `ramm.mif` | Confirm addr 0–4 = `1,2,3,4,13` (D terminator) |
+| `correct` never fires in T5 | Wrong supervisor password | Confirm addr 32–36 = `2,0,2,6,13` (D terminator) |
 | T4 `locked` never asserts | `ThreeBitsCounter` not reaching 4 | Check `increment` pulses — one per failed attempt |
 | T5 `locked` not cleared | `unlock_req` not pulsing | Confirm `supervisor_requests` sees `switches=3` while `session_active=1` |
 | T6 never reaches S0 | `timeOut` not firing | Check `ThirteenBitsCounter` waveform — must reach `13'd5000` |

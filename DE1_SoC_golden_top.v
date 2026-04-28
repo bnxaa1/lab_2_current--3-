@@ -202,6 +202,50 @@ module DE1_SoC_golden_top(
 //  REG/WIRE declarations
 //=======================================================
 
+// Debug wires from lab_2
+wire [3:0] dbg_code, dbg_switches, dbg_flags1, dbg_flags0, keypad_pass_dbg;
+wire [5:0] dbg_rAddr;
+wire [2:0] dbg_state, sr_state;
+wire       session_active;
+wire       clk1ms;
+wire [3:0] kpad_pass;
+wire       kpad_enter;
+wire [3:0] kpad_rows;
+wire [3:0] kpad_cols;
+wire       error_pulse;
+wire       correct_pulse;
+wire       err_led;
+wire       corr_led;
+wire       lock_led;
+wire       hex_error_active;
+
+// Hex-to-7-segment decoder (active-low segments)
+function [6:0] h7s;
+    input [3:0] x;
+    case (x)
+        4'h0: h7s = 7'b100_0000;
+        4'h1: h7s = 7'b111_1001;
+        4'h2: h7s = 7'b010_0100;
+        4'h3: h7s = 7'b011_0000;
+        4'h4: h7s = 7'b001_1001;
+        4'h5: h7s = 7'b001_0010;
+        4'h6: h7s = 7'b000_0010;
+        4'h7: h7s = 7'b111_1000;
+        4'h8: h7s = 7'b000_0000;
+        4'h9: h7s = 7'b001_0000;
+        4'hA: h7s = 7'b000_1000;
+        4'hB: h7s = 7'b000_0011;
+        4'hC: h7s = 7'b100_0110;
+        4'hD: h7s = 7'b010_0001;
+        4'hE: h7s = 7'b000_0110;
+        4'hF: h7s = 7'b000_1110;
+    endcase
+endfunction
+
+localparam [6:0] H7S_R = 7'b111_1010;  // lowercase r approximation on 7-seg
+
+assign hex_error_active = err_led | error_pulse;
+
 // Unused output tie-offs (NIOS II removed — lab_2 is the sole design)
 assign ADC_CONVST   = 1'b0;
 assign ADC_DIN      = 1'b0;
@@ -225,13 +269,13 @@ assign DRAM_RAS_N   = 1'b1;
 assign DRAM_UDQM    = 1'b1;
 assign DRAM_WE_N    = 1'b1;
 
-// HEX displays — blank all (segments active-low, 7'h7F = all off)
-assign HEX0 = 7'h7F;
-assign HEX1 = 7'h7F;
-assign HEX2 = 7'h7F;
-assign HEX3 = 7'h7F;
-assign HEX4 = 7'h7F;
-assign HEX5 = 7'h7F;
+// HEX displays — lab_2 debug map
+assign HEX5 = h7s(dbg_code);
+assign HEX4 = h7s(keypad_pass_dbg);
+assign HEX3 = h7s(dbg_rAddr[3:0]);
+assign HEX2 = hex_error_active ? h7s(4'hE) : h7s({1'b0, dbg_state});
+assign HEX1 = hex_error_active ? H7S_R   : h7s(dbg_flags1);
+assign HEX0 = hex_error_active ? H7S_R   : h7s(dbg_flags0);
 
 // VGA — blank
 assign VGA_B       = 8'b0;
@@ -243,12 +287,22 @@ assign VGA_R       = 8'b0;
 assign VGA_SYNC_N  = 1'b0;
 assign VGA_VS      = 1'b0;
 
-// LEDR[9:4] — unused by lab_2
-assign LEDR[9:4]   = 6'b0;
+// LEDR[9:5] — lab_2 status/debug signals
+assign LEDR[9]   = session_active;
+assign LEDR[8:6] = sr_state;
+assign LEDR[5]   = SW[0];
+assign LEDR[4]   = lock_led;
+assign LEDR[3]   = corr_led;
+assign LEDR[2]   = err_led;
+assign LEDR[1]   = correct_pulse;
+assign LEDR[0]   = error_pulse;
 
 // GPIO_1 and unused GPIO_0 bits — tri-state
-assign GPIO_1      = 36'hzzzzzzzzz;
-assign GPIO_0[27:0] = 28'hzzzzzzz;  // GPIO_0[35:28] used by lab_2
+assign kpad_rows     = GPIO_0[31:28];
+assign GPIO_0[35:32] = kpad_cols;
+assign GPIO_0[31:28] = 4'bzzzz;
+assign GPIO_1        = 36'hzzzzzzzzz;
+assign GPIO_0[27:0]  = 28'hzzzzzzz;  // GPIO_0[35:28] used by keypad scanner
 
 
 
@@ -256,25 +310,53 @@ assign GPIO_0[27:0] = 28'hzzzzzzz;  // GPIO_0[35:28] used by lab_2
 //  Structural coding
 //=======================================================
 
+	// ── Shared 1 kHz clock for keypad scan and access-control logic ─────────
+	clock1 clk1(
+		.clk    (CLOCK_50),
+		.clk_out(clk1ms)
+	);
+
+	// ── Physical keypad interface at board top level ─────────────────────────
+	keypad_interface_single_scan kpad1(
+		.clk  (CLOCK_50),
+		.rstn (KEY[0]),
+		.rows (kpad_rows),
+		.cols (kpad_cols),
+		.pass (kpad_pass),
+		.Enter(kpad_enter)
+	);
+
 	// ── Lab 2 — Digital Access Control System ───────────────────────────────
 	// Keypad 4×4 matrix: columns on GPIO_0[35:32], rows on GPIO_0[31:28]
 	// KEY[0] = resetN (active-low), KEY[1] = supervisor key, KEY[2] = srst_access
-	// LEDR[0]=error  LEDR[1]=correct  LEDR[2]=Err_LED  LEDR[3]=Corr_LED
+	// LEDR[0]=error  LEDR[1]=correct  LEDR[2]=Err_LED  LEDR[3]=Corr_LED  LEDR[4]=Lock_LED  LEDR[5]=key(SW[0])
+	// LEDR[9]=session_active  LEDR[8:6]=sr_state (0=idle,1=chg_user,2=chg_super,3=exit,4=unlock)
 	// KEY buttons are active-low on DE1-SoC:
-	//   KEY[0] → resetN  (active-low, connected directly — polarity matches)
-	//   KEY[1] → key     (active-high in design, invert KEY[1])
+	//   KEY[0] → resetN      (active-low, connected directly — polarity matches)
 	//   KEY[2] → srst_access (active-high in design, invert KEY[2])
+	// SW[0] is a toggle switch (active-high when up) — used for supervisor key:
+	//   SW[0]  → key         (active-high, connected directly — no inversion needed)
 	lab_2 u_lab2 (
-		.clk         (CLOCK_50),
-		.resetN      (KEY[0]),
-		.key         (~KEY[1]),
-		.srst_access (~KEY[2]),
-		.cols        (GPIO_0[35:32]),
-		.rows        (GPIO_0[31:28]),
-		.error       (LEDR[0]),
-		.correct     (LEDR[1]),
-		.Err_LED     (LEDR[2]),
-		.Corr_LED    (LEDR[3])
+		.clk            (clk1ms),
+		.resetN         (KEY[0]),
+		.key            (SW[0]),
+		.srst_access    (~KEY[2]),
+		.enter_al       (kpad_enter),
+		.switches       (kpad_pass),
+		.error          (error_pulse),
+		.correct        (correct_pulse),
+		.Err_LED        (err_led),
+		.Corr_LED       (corr_led),
+		.Lock_LED       (lock_led),
+		.session_active (session_active),
+		.dbg_code       (dbg_code),
+		.dbg_switches   (dbg_switches),
+		.dbg_flags1     (dbg_flags1),
+		.dbg_flags0     (dbg_flags0),
+		.keypad_pass_dbg(keypad_pass_dbg),
+		.dbg_rAddr      (dbg_rAddr),
+		.dbg_state      (dbg_state),
+		.sr_state       (sr_state)
 	);
 
 

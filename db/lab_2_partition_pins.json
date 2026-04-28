@@ -4,67 +4,231 @@
 			"name" : "Top",
 			"pins" : [
 				{
-					"name" : "error",
+					"name" : "HEX0[0]",
 					"strict" : false
 				},
 				{
-					"name" : "correct",
+					"name" : "HEX0[1]",
 					"strict" : false
 				},
 				{
-					"name" : "Err_LED",
+					"name" : "HEX0[2]",
 					"strict" : false
 				},
 				{
-					"name" : "Corr_LED",
+					"name" : "HEX0[3]",
 					"strict" : false
 				},
 				{
-					"name" : "cols[0]",
+					"name" : "HEX0[4]",
 					"strict" : false
 				},
 				{
-					"name" : "cols[1]",
+					"name" : "HEX0[5]",
 					"strict" : false
 				},
 				{
-					"name" : "cols[2]",
+					"name" : "HEX0[6]",
 					"strict" : false
 				},
 				{
-					"name" : "cols[3]",
+					"name" : "HEX1[0]",
 					"strict" : false
 				},
 				{
-					"name" : "rows[0]",
+					"name" : "HEX1[1]",
 					"strict" : false
 				},
 				{
-					"name" : "rows[1]",
+					"name" : "HEX1[2]",
 					"strict" : false
 				},
 				{
-					"name" : "rows[2]",
+					"name" : "HEX1[3]",
 					"strict" : false
 				},
 				{
-					"name" : "rows[3]",
+					"name" : "HEX1[4]",
 					"strict" : false
 				},
 				{
-					"name" : "key",
+					"name" : "HEX1[5]",
 					"strict" : false
 				},
 				{
-					"name" : "srst_access",
+					"name" : "HEX1[6]",
 					"strict" : false
 				},
 				{
-					"name" : "resetN",
+					"name" : "HEX2[0]",
 					"strict" : false
 				},
 				{
-					"name" : "clk",
+					"name" : "HEX2[1]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX2[2]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX2[3]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX2[4]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX2[5]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX2[6]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX4[0]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX4[1]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX4[2]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX4[3]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX4[4]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX4[5]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX4[6]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX5[0]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX5[1]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX5[2]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX5[3]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX5[4]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX5[5]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX5[6]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[0]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[1]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[2]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[3]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[4]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[5]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[6]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[7]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[8]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[9]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[28]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[29]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[30]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[31]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[32]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[33]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[34]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[35]",
+					"strict" : false
+				},
+				{
+					"name" : "SW[0]",
+					"strict" : false
+				},
+				{
+					"name" : "KEY[2]",
+					"strict" : false
+				},
+				{
+					"name" : "KEY[0]",
+					"strict" : false
+				},
+				{
+					"name" : "CLOCK_50",
 					"strict" : false
 				}
 			]

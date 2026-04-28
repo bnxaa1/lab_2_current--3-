@@ -1,36 +1,38 @@
 module lab_2(
-    inout  logic [3:0] cols, rows,
-    input  logic       key, clk, resetN, srst_access,
-    output logic       error, correct, Err_LED, Corr_LED
+    input  logic       key, clk, resetN, srst_access, enter_al,
+    input  logic [3:0] switches,
+    output logic       error, correct, Err_LED, Corr_LED, Lock_LED, session_active,
+    output logic [3:0] dbg_code, dbg_switches, dbg_flags1, dbg_flags0, keypad_pass_dbg,
+    output logic [5:0] dbg_rAddr,
+    output logic [2:0] dbg_state, sr_state
 );
 
-    logic        clk1ms;
-    logic        enter_al;             // active-low keypress from keypad_interface
-    logic        session_active, locked, timeOut, rst_lv, increment;
+    logic        clk1ms;               // lab_2 now consumes the already-divided 1 kHz clock
+    logic        locked, timeOut, rst_lv, increment;
     logic        exit_req, unlock_req, change_user_req, change_super_req;
     logic        cp_active, cp_complete, cp_fail, cp_done, is_supervisor, cp_wren;
     logic        cp_ctrRst, cp_srst_lv;
     logic        enter_d, done;
-    logic        ap_corr_pulse, ap_err_pulse; // 1-cycle pulses from access_permission → leds FSM
+    logic        ap_corr_pulse, ap_err_pulse;  // 1-cycle pulses from access_permission → leds FSM
+    logic        session_active_r, sup_corr_pulse; // edge detector for supervisor auth confirmation
     logic [2:0]  access_state_p;
-    logic [3:0]  dataIn_cp, switches;  // switches driven by keypad_interface.pass
+    logic [3:0]  dataIn_cp;
     logic [5:0]  target_addr, active_addr;
 
-    assign cp_done      = cp_complete | cp_fail;         // release supervisor_requests from CHANGE state
+    assign clk1ms = clk;
+    assign dbg_switches = switches;
+    assign keypad_pass_dbg = switches;  // dedicated raw keypad pass value for top-level HEX debug
+    assign dbg_state    = access_state_p;
+    assign dbg_flags1   = {locked, session_active, done, enter_d};
+    assign dbg_flags0   = {cp_active, cp_complete, correct, error};
+
+    assign cp_done       = cp_complete | cp_fail;         // release supervisor_requests from CHANGE state
     assign is_supervisor = change_super_req;              // stable throughout change_password session
+    assign sup_corr_pulse = session_active & ~session_active_r; // 1-cycle pulse on supervisor auth success
 
-    // ── Clock divider ─────────────────────────────────────────────────────────
-    clock1 clk1(.clk(clk), .clk_out(clk1ms));
-
-    // ── Keypad interface ──────────────────────────────────────────────────────
-    keypad_interface kpad1(
-        .clk  (clk1ms),
-        .rstn (resetN),
-        .cols (cols),
-        .rows (rows),
-        .pass (switches),
-        .Enter(enter_al)
-    );
+    always_ff @(posedge clk1ms, negedge resetN)
+        if (!resetN) session_active_r <= 1'b0;
+        else         session_active_r <= session_active;
 
     // ── Access permission wrapper ─────────────────────────────────────────────
     access_permission_wrapper apw1(
@@ -62,7 +64,9 @@ module lab_2(
         .session_active(session_active),
         .enter_d       (enter_d),
         .done          (done),
-        .active_addr   (active_addr)
+        .active_addr   (active_addr),
+        .dbg_code      (dbg_code),
+        .dbg_rAddr     (dbg_rAddr)
     );
 
     // ── Supervisor requests ───────────────────────────────────────────────────
@@ -77,7 +81,8 @@ module lab_2(
         .exit_req        (exit_req),
         .unlock_req      (unlock_req),
         .change_user_req (change_user_req),
-        .change_super_req(change_super_req)
+        .change_super_req(change_super_req),
+        .sr_state        (sr_state)
     );
 
     // ── Change password ───────────────────────────────────────────────────────
@@ -104,12 +109,15 @@ module lab_2(
 
     // ── LEDs ──────────────────────────────────────────────────────────────────
     leds led1(
-        .clk      (clk1ms),
-        .rstN     (resetN),
-        .corr_in  (ap_corr_pulse),
-        .err_in   (ap_err_pulse),
-        .Corr_LED (Corr_LED),
-        .Err_LED  (Err_LED)
+        .clk        (clk1ms),
+        .rstN       (resetN),
+        .corr_in    (ap_corr_pulse | sup_corr_pulse | cp_complete | unlock_req),
+        .err_in     (ap_err_pulse),
+        .timeout_in (timeOut),
+        .locked_in  (locked),
+        .Corr_LED   (Corr_LED),
+        .Err_LED    (Err_LED),
+        .Lock_LED   (Lock_LED)
     );
 
 endmodule

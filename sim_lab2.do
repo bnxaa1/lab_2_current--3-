@@ -10,6 +10,7 @@ vlog -work work sixteenbitsctr.v
 vlog -work work thirteenBitsCtr.v
 vlog -work work ThreeBitsCounter.v
 vlog -work work ram_sim.v
+vlog -work work twelveBitsCounter.v
 
 # ── Design files (SystemVerilog, dependency order) ────────────────────────────
 vlog -sv -work work clock1.sv
@@ -53,6 +54,15 @@ add wave /tb_lab_2/correct
 add wave /tb_lab_2/error
 add wave /tb_lab_2/Corr_LED
 add wave /tb_lab_2/Err_LED
+add wave /tb_lab_2/Lock_LED
+
+add wave -divider "LEDs FSM"
+add wave /tb_lab_2/uut/led1/state_reg
+add wave /tb_lab_2/uut/locked
+add wave /tb_lab_2/uut/timeOut
+add wave /tb_lab_2/uut/ap_corr_pulse
+add wave /tb_lab_2/uut/ap_err_pulse
+add wave /tb_lab_2/uut/sup_corr_pulse
 
 add wave -divider "AP FSM"
 add wave /tb_lab_2/uut/access_state_p

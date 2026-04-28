@@ -1,11 +1,11 @@
-Analysis & Synthesis Status : Successful - Mon Apr 27 16:26:01 2026
+Analysis & Synthesis Status : Successful - Tue Apr 28 16:23:44 2026
 Quartus Prime Version : 25.1std.0 Build 1129 10/21/2025 SC Lite Edition
 Revision Name : lab_2
-Top-level Entity Name : lab_2
+Top-level Entity Name : DE1_SoC_golden_top
 Family : Cyclone V
 Logic utilization (in ALMs) : N/A
-Total registers : 108
-Total pins : 16
+Total registers : 136
+Total pins : 241
 Total virtual pins : 0
 Total block memory bits : 256
 Total DSP Blocks : 0

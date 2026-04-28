@@ -47,6 +47,6 @@ module one_pulse_generator(
     end
 	 
 // clk is clk1ms (1 kHz); 15 cycles = 15 ms debounce window
-    counter c1(.clock(clk), .sclr(st), .q(ctr), .clk_en(1'b1)); // instantiate the counter module
+    counter c1(.clock(clk), .sclr(st), .q(ctr), .cnt_en(1'b1)); // instantiate the counter module
 	assign done_clk = &ctr;
 endmodule

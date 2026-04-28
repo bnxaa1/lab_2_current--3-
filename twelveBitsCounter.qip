@@ -1,0 +1,8 @@
+set_global_assignment -name IP_TOOL_NAME "LPM_COUNTER"
+set_global_assignment -name IP_TOOL_VERSION "25.1"
+set_global_assignment -name IP_GENERATED_DEVICE_FAMILY "{Cyclone V}"
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "twelveBitsCounter.v"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "twelveBitsCounter.bsf"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "twelveBitsCounter_inst.v"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "twelveBitsCounter_bb.v"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "twelveBitsCounter_syn.v"]
